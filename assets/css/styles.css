@@ -611,3 +611,27 @@ form label:not(.attendance-options label) {
   .frame-top, .frame-bottom { transform: scaleX(1); }
   .frame-left, .frame-right { transform: scaleY(1); }
 }
+.admin-access {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(20, 13, 42, 0.55);
+  text-decoration: none;
+  font-size: 18px;
+  backdrop-filter: blur(10px);
+  transition: 0.25s ease;
+}
+
+.admin-access:hover {
+  color: #fff;
+  background: rgba(76, 52, 120, 0.9);
+  transform: rotate(45deg) scale(1.08);
+}
