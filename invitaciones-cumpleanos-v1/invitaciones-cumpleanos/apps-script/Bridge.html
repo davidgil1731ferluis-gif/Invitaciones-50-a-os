@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head><base target="_top"><meta charset="utf-8"></head>
+<body>
+  <script>
+    (function () {
+      let allowedOrigins = [];
+
+      function normalize(origin) {
+        return String(origin || "").replace(/\/$/, "");
+      }
+
+      function respond(target, origin, id, ok, data, error) {
+        target.postMessage({ type: "api-response", id: id, ok: ok, data: data || null, error: error || null }, origin);
+      }
+
+      google.script.run
+        .withSuccessHandler(function (config) {
+          allowedOrigins = (config.allowedOrigins || []).map(normalize);
+          window.parent.postMessage({ type: "bridge-ready" }, "*");
+        })
+        .withFailureHandler(function () {
+          window.parent.postMessage({ type: "bridge-ready" }, "*");
+        })
+        .getPublicConfig();
+
+      window.addEventListener("message", function (event) {
+        const origin = normalize(event.origin);
+        const message = event.data || {};
+        if (allowedOrigins.indexOf(origin) === -1) return;
+        if (message.type !== "api-request" || !message.id || !message.action) return;
+
+        google.script.run
+          .withSuccessHandler(function (data) { respond(event.source, event.origin, message.id, true, data, null); })
+          .withFailureHandler(function (failure) {
+            const text = failure && failure.message ? failure.message : "No fue posible completar la solicitud.";
+            respond(event.source, event.origin, message.id, false, null, text);
+          })
+          .dispatch(message.action, message.payload || {});
+      });
+    })();
+  </script>
+</body>
+</html>

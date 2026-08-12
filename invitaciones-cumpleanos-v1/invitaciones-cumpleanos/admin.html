@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17102f">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Administración de invitaciones</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="ambient" aria-hidden="true"><div id="stars" class="stars"></div><div class="moon"></div></div>
+
+  <main class="admin-shell">
+    <section id="admin-login" class="admin-login">
+      <div class="glass-card">
+        <div class="response-icon" aria-hidden="true">✦</div>
+        <p class="eyebrow">Acceso protegido</p>
+        <h1>Administrar invitaciones</h1>
+        <p class="supporting-text">Ingresa las credenciales configuradas en el Apps Script.</p>
+        <form id="admin-login-form">
+          <label for="admin-user">Usuario</label>
+          <input id="admin-user" name="username" type="text" autocomplete="username" required>
+          <label for="admin-password">Contraseña</label>
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" required>
+          <p class="field-help demo-only">Demostración: usuario <strong>admin</strong> y contraseña <strong>Cumple2026!</strong></p>
+          <p id="login-error" class="field-error" role="alert"></p>
+          <button class="button button-primary button-wide" type="submit">
+            <span class="button-label">Ingresar</span><span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section id="admin-dashboard" class="dashboard" hidden>
+      <header class="dashboard-header">
+        <div>
+          <p class="eyebrow">Panel administrativo</p>
+          <h1>Invitaciones del cumpleaños</h1>
+        </div>
+        <div class="header-actions">
+          <a class="button button-secondary" href="index.html">Ver experiencia</a>
+          <button id="admin-logout" class="button button-ghost" type="button">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <div class="metric-grid" aria-label="Resumen de confirmaciones">
+        <article class="metric"><span>Total</span><strong id="metric-total">0</strong></article>
+        <article class="metric metric-success"><span>Confirmadas</span><strong id="metric-confirmed">0</strong></article>
+        <article class="metric metric-danger"><span>No asistirán</span><strong id="metric-declined">0</strong></article>
+        <article class="metric metric-pending"><span>Pendientes</span><strong id="metric-pending">0</strong></article>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-panel create-panel" aria-labelledby="create-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Nueva invitación</p><h2 id="create-title">Registrar invitado</h2></div>
+          </div>
+          <form id="create-invitation-form">
+            <div class="form-grid">
+              <div class="field field-wide">
+                <label for="primary-name">Nombre del invitado principal</label>
+                <input id="primary-name" name="primaryName" type="text" required>
+              </div>
+              <div class="field">
+                <label for="guest-email">Correo (opcional)</label>
+                <input id="guest-email" name="email" type="email">
+              </div>
+              <div class="field">
+                <label for="guest-phone">Teléfono (opcional)</label>
+                <input id="guest-phone" name="phone" type="tel">
+              </div>
+              <div class="field field-wide">
+                <label for="companions">Acompañantes vinculados</label>
+                <textarea id="companions" name="companions" rows="5" placeholder="Escribe un nombre por línea"></textarea>
+                <p class="field-help">El invitado principal también se agregará automáticamente al grupo.</p>
+              </div>
+            </div>
+            <p id="create-error" class="field-error" role="alert"></p>
+            <button class="button button-primary" type="submit">
+              <span class="button-label">Registrar y generar código</span><span class="button-loader" aria-hidden="true"></span>
+            </button>
+          </form>
+
+          <div id="generated-code" class="generated-code" hidden>
+            <span>Código generado</span>
+            <strong id="generated-code-value"></strong>
+            <button id="copy-code" class="button button-secondary" type="button">Copiar código</button>
+          </div>
+        </section>
+
+        <section class="admin-panel list-panel" aria-labelledby="list-title">
+          <div class="panel-heading list-heading">
+            <div><p class="eyebrow">Base de invitados</p><h2 id="list-title">Invitaciones registradas</h2></div>
+            <button id="refresh-dashboard" class="button button-secondary" type="button">Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Invitado</th><th>Código</th><th>Personas</th><th>Estado</th><th>Fecha respuesta</th></tr></thead>
+              <tbody id="invitation-table-body"></tbody>
+            </table>
+          </div>
+          <p id="dashboard-error" class="field-error" role="alert"></p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <iframe id="api-bridge" class="api-bridge" title="Conexión segura" hidden></iframe>
+  <div id="admin-live-region" class="sr-only" aria-live="polite"></div>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
