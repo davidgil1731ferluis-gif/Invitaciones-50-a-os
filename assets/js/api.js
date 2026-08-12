@@ -3,6 +3,7 @@
   const pending = new Map();
   let bridgeReady = false;
   let bridgeOrigin = null;
+  let bridgeWindow = null;
   let requestSequence = 0;
 
   function appsScriptConfigured() {
@@ -26,17 +27,18 @@
     iframe.src = config.appsScriptUrl;
 
     window.addEventListener("message", (event) => {
-      if (event.source !== iframe.contentWindow || !allowedBridgeOrigin(event.origin)) return;
+      if (!allowedBridgeOrigin(event.origin)) return;
       const message = event.data || {};
 
       if (message.type === "bridge-ready") {
+        bridgeWindow = event.source;
         bridgeOrigin = event.origin;
         bridgeReady = true;
         window.dispatchEvent(new CustomEvent("invitation-api-ready"));
         return;
       }
 
-      if (message.type !== "api-response" || !message.id || !pending.has(message.id)) return;
+      if (event.source !== bridgeWindow || message.type !== "api-response" || !message.id || !pending.has(message.id)) return;
       const request = pending.get(message.id);
       pending.delete(message.id);
       clearTimeout(request.timeout);
@@ -68,7 +70,7 @@
       }, 15000);
 
       pending.set(id, { resolve, reject, timeout });
-      iframe.contentWindow.postMessage({ type: "api-request", id, action, payload }, bridgeOrigin);
+      bridgeWindow.postMessage({ type: "api-request", id, action, payload }, bridgeOrigin);
     });
   }
 
