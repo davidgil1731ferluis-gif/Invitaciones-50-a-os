@@ -13,11 +13,11 @@ window.INVITATION_CONFIG = Object.freeze({
     dressCode: "Elegante",
 
     // Formato ISO con zona horaria. Ejemplo Colombia: 2026-09-12T19:00:00-05:00
-    calendarStart: "",
-    calendarEnd: "",
+    calendarStart: "2026-09-12T19:00:00-05:00",
+    calendarEnd: "2026-09-13T02:00:00-05:00",
 
     // Es opcional. Si se deja vacío se buscará automáticamente la dirección en Google Maps.
-    mapsUrl: ""
+    mapsUrl: "https://www.google.com/maps/place/Eventos+Rancho+Gran+Gil%C2%B4s/@5.5347268,-73.5065514,17z/data=!3m1!4b1!4m6!3m5!1s0x8e41d5cefa34d1ad:0x72a406c862986092!8m2!3d5.5347268!4d-73.5039765!16s%2Fg%2F11sthkl44s?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D"
   },
 
   animation: {
