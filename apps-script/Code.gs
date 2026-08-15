@@ -112,7 +112,8 @@ function saveMainResponse_(payload) {
   try {
     const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
-    const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
+    const allAttendees = objects_(SHEETS.ATTENDEES).filter(function (item) { return asBoolean_(item.ACTIVO); });
+    const attendees = allAttendees.filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
     });
     const now = new Date();
@@ -130,7 +131,11 @@ function saveMainResponse_(payload) {
     batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
     if (response === "NO") appendResponseSnapshot_(invitationId, "NO", attendees);
     invalidateInvitationCache_(invitation.CODIGO);
-    return { saved: true, invitation: invitationPublicModel_(invitation, attendees) };
+    return {
+      saved: true,
+      invitation: invitationPublicModel_(invitation, attendees),
+      constellation: constellationModel_(allAttendees)
+    };
   } finally {
     lock.releaseLock();
   }
@@ -150,7 +155,8 @@ function saveAttendees_(payload) {
   try {
     const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
-    const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
+    const allAttendees = objects_(SHEETS.ATTENDEES).filter(function (item) { return asBoolean_(item.ACTIVO); });
+    const attendees = allAttendees.filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
     });
     if (!attendees.length) throw new Error("No encontramos asistentes vinculados a esta invitación.");
@@ -171,7 +177,11 @@ function saveAttendees_(payload) {
     updateObjectRow_(SHEETS.INVITATIONS, invitation._row, { ESTADO: "SI", FECHA_RESPUESTA: now, ACTUALIZADO_EN: now });
     appendResponseSnapshot_(invitationId, "SI", attendees);
     invalidateInvitationCache_(invitation.CODIGO);
-    return { saved: true };
+    return {
+      saved: true,
+      tableName: invitation.MESA || "",
+      constellation: constellationModel_(allAttendees)
+    };
   } finally {
     lock.releaseLock();
   }
@@ -376,11 +386,20 @@ function invitationPublicModel_(invitation, attendees) {
     id: invitation.ID,
     primaryName: invitation.NOMBRE_PRINCIPAL,
     salutationDetail: invitation.TRATAMIENTO || "",
-    tableName: invitation.MESA || "",
     status: invitation.ESTADO || "PENDIENTE",
     attendees: group.map(function (item) {
-      return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA || "PENDIENTE", tableName: item.MESA || invitation.MESA || "" };
+      return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA || "PENDIENTE" };
     })
+  };
+}
+
+function constellationModel_(attendees) {
+  const confirmedCount = attendees.filter(function (item) {
+    return asBoolean_(item.ACTIVO) && String(item.RESPUESTA || "").toUpperCase() === "SI";
+  }).length;
+  return {
+    confirmedCount: confirmedCount,
+    visibleStars: Math.min(confirmedCount, 64)
   };
 }
 
@@ -522,7 +541,7 @@ function appendRows_(sheetName, rows) {
   sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS[sheetName].length).setValues(rows);
 }
 
-function invitationCacheKey_(code) { return "inv-code:" + normalizeCode_(code); }
+function invitationCacheKey_(code) { return "inv-v3-code:" + normalizeCode_(code); }
 function invalidateInvitationCache_(code) {
   if (code) CacheService.getScriptCache().remove(invitationCacheKey_(code));
 }

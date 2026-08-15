@@ -87,9 +87,14 @@
           <p class="invitation-kicker reveal-piece">Estás cordialmente invitado a celebrar</p>
           <div class="magic-divider reveal-piece" aria-hidden="true"><span></span><b>✦</b><span></span></div>
           <div class="invitation-hero reveal-piece">
-            <figure class="honoree-photo">
-              <span class="portrait-orbit" aria-hidden="true"></span>
-              <img src="assets/images/retrato-cumpleanos.webp" width="487" height="722" alt="Retrato de la homenajeada">
+            <figure class="honoree-window">
+              <span class="window-glow" aria-hidden="true"></span>
+              <span class="window-photo">
+                <img src="assets/images/retrato-cumpleanos.webp" width="487" height="722" alt="Retrato de la homenajeada">
+              </span>
+              <img class="window-ornament" src="assets/images/portrait-window-frame.svg" width="260" height="300" alt="" aria-hidden="true">
+              <span class="window-spark window-spark-one" aria-hidden="true">✦</span>
+              <span class="window-spark window-spark-two" aria-hidden="true">✧</span>
             </figure>
             <div class="hero-copy">
               <span class="hero-overline">Celebremos juntos</span>
@@ -165,6 +170,36 @@
         <p class="eyebrow">Respuesta registrada</p>
         <h2 id="farewell-title">Gracias por confirmar</h2>
         <p id="farewell-message" class="supporting-text">Tu respuesta quedó guardada correctamente. Ya puedes cerrar este enlace.</p>
+
+        <div id="table-reveal" class="table-reveal" hidden>
+          <span class="table-magic" aria-hidden="true">✦</span>
+          <small>Tu lugar en esta celebración</small>
+          <strong id="revealed-table">Mesa por asignar</strong>
+          <span>La magia también tiene un lugar reservado para ustedes</span>
+        </div>
+
+        <section id="guest-constellation" class="guest-constellation" aria-labelledby="constellation-title" hidden>
+          <p class="eyebrow">Una celebración que ya brilla</p>
+          <h3 id="constellation-title">Constelación de invitados</h3>
+          <div id="constellation-sky" class="constellation-sky" aria-hidden="true"></div>
+          <p id="constellation-count" class="constellation-count"></p>
+        </section>
+
+        <div class="final-action-grid">
+          <button id="add-to-calendar" class="button button-soft" type="button" hidden>
+            <span aria-hidden="true">◷</span><span>Agregar al calendario</span>
+          </button>
+          <a id="open-location" class="button button-soft" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            <span aria-hidden="true">⌖</span><span>Cómo llegar</span>
+          </a>
+        </div>
+
+        <button id="download-card-pdf" class="button button-primary download-card-button" type="button">
+          <span class="download-icon" aria-hidden="true">⇩</span>
+          <span class="button-label">Descargar mi invitación en PDF</span>
+          <span class="button-loader" aria-hidden="true"></span>
+        </button>
+        <p id="download-error" class="field-error download-error" role="alert"></p>
         <div class="final-stars" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div>
       </div>
     </section>
@@ -179,6 +214,7 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/mock-data.js"></script>
   <script src="assets/js/api.js"></script>
+  <script src="assets/js/pdf-card.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

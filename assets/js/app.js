@@ -3,7 +3,7 @@
   const screens = [...document.querySelectorAll(".screen")];
   const liveRegion = document.getElementById("live-region");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const state = { invitation: null, mainResponse: null };
+  const state = { invitation: null, mainResponse: null, constellation: null };
 
   const elements = {
     openLetter: document.getElementById("open-letter"),
@@ -23,7 +23,16 @@
     attendeesError: document.getElementById("attendees-error"),
     balloons: document.getElementById("balloons"),
     farewellTitle: document.getElementById("farewell-title"),
-    farewellMessage: document.getElementById("farewell-message")
+    farewellMessage: document.getElementById("farewell-message"),
+    tableReveal: document.getElementById("table-reveal"),
+    revealedTable: document.getElementById("revealed-table"),
+    guestConstellation: document.getElementById("guest-constellation"),
+    constellationSky: document.getElementById("constellation-sky"),
+    constellationCount: document.getElementById("constellation-count"),
+    addToCalendar: document.getElementById("add-to-calendar"),
+    openLocation: document.getElementById("open-location"),
+    downloadPdf: document.getElementById("download-card-pdf"),
+    downloadError: document.getElementById("download-error")
   };
 
   function announce(message) {
@@ -61,6 +70,55 @@
     document.getElementById("event-address").textContent = event.address;
     document.getElementById("dress-code").textContent = event.dressCode;
     document.getElementById("dress-code-wrap").hidden = !event.dressCode;
+  }
+
+  function validEventDate(value) {
+    return value && !Number.isNaN(new Date(value).getTime());
+  }
+
+  function applyEventActions() {
+    const event = config.event;
+    const canAddCalendar = validEventDate(event.calendarStart) && validEventDate(event.calendarEnd);
+    elements.addToCalendar.hidden = !canAddCalendar;
+
+    const hasAddress = event.address && !/por confirmar/i.test(event.address);
+    const hasPlace = event.place && !/por confirmar/i.test(event.place);
+    const locationUrl = event.mapsUrl || ((hasAddress || hasPlace)
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([event.place, event.address].filter(Boolean).join(", "))}`
+      : "");
+    elements.openLocation.hidden = !locationUrl;
+    if (locationUrl) elements.openLocation.href = locationUrl;
+  }
+
+  function icsDate(value) {
+    return new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  }
+
+  function icsText(value) {
+    return String(value || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  }
+
+  function downloadCalendarEvent() {
+    const event = config.event;
+    if (!validEventDate(event.calendarStart) || !validEventDate(event.calendarEnd)) return;
+    const location = [event.place, event.address].filter(Boolean).join(", ");
+    const uid = `cumpleanos-${state.invitation?.id || "invitacion"}@invitacion-magica`;
+    const content = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Invitacion Magica//ES", "CALSCALE:GREGORIAN",
+      "BEGIN:VEVENT", `UID:${icsText(uid)}`, `DTSTAMP:${icsDate(new Date())}`,
+      `DTSTART:${icsDate(event.calendarStart)}`, `DTEND:${icsDate(event.calendarEnd)}`,
+      `SUMMARY:${icsText(event.title)}`, `DESCRIPTION:${icsText(event.message)}`,
+      `LOCATION:${icsText(location)}`, "END:VEVENT", "END:VCALENDAR"
+    ].join("\r\n");
+    const url = URL.createObjectURL(new Blob([content], { type: "text/calendar;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "cumpleanos-invitacion.ics";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    announce("El evento fue preparado para agregarlo a tu calendario.");
   }
 
   function buildStars() {
@@ -172,7 +230,66 @@
     announce("Asistencia principal confirmada. Ahora confirma las personas de tu grupo.");
   }
 
-  function showFarewell(attending) {
+  function seededRandom(seed) {
+    let value = seed % 2147483647;
+    if (value <= 0) value += 2147483646;
+    return () => {
+      value = value * 16807 % 2147483647;
+      return (value - 1) / 2147483646;
+    };
+  }
+
+  function renderConstellation(model) {
+    const confirmedCount = Number(model?.confirmedCount || 0);
+    const visibleStars = Math.min(Number(model?.visibleStars || confirmedCount), 64);
+    const random = seededRandom(confirmedCount * 7919 + 2026);
+    const points = [];
+    elements.constellationSky.replaceChildren();
+
+    const lines = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    lines.setAttribute("class", "constellation-lines");
+    lines.setAttribute("viewBox", "0 0 100 100");
+    lines.setAttribute("preserveAspectRatio", "none");
+
+    for (let index = 0; index < visibleStars; index += 1) {
+      const point = { x: 6 + random() * 88, y: 9 + random() * 81 };
+      points.push(point);
+      const star = document.createElement("span");
+      star.className = `constellation-star${index % 7 === 0 ? " is-accent" : ""}`;
+      star.style.setProperty("--star-x", `${point.x}%`);
+      star.style.setProperty("--star-y", `${point.y}%`);
+      star.style.setProperty("--star-size", `${index % 7 === 0 ? 6 : 3 + Math.round(random() * 2)}px`);
+      star.style.setProperty("--star-delay", `${Math.min(index * .045, 1.4)}s`);
+      elements.constellationSky.appendChild(star);
+    }
+
+    points.slice(1, 18).forEach((point, index) => {
+      if (index % 4 === 3) return;
+      const previous = points[index];
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", previous.x);
+      line.setAttribute("y1", previous.y);
+      line.setAttribute("x2", point.x);
+      line.setAttribute("y2", point.y);
+      lines.appendChild(line);
+    });
+    elements.constellationSky.prepend(lines);
+    elements.constellationCount.innerHTML = confirmedCount
+      ? `<strong>${confirmedCount}</strong> ${confirmedCount === 1 ? "persona ya ilumina" : "personas ya iluminan"} esta celebración.`
+      : "La primera estrella de esta celebración aún está por encenderse.";
+    elements.guestConstellation.hidden = false;
+  }
+
+  function revealTable(attending) {
+    const tableName = attending ? String(state.invitation?.tableName || "").trim() : "";
+    elements.tableReveal.hidden = !tableName;
+    elements.tableReveal.classList.remove("is-revealed");
+    if (!tableName) return;
+    elements.revealedTable.textContent = tableName;
+    requestAnimationFrame(() => elements.tableReveal.classList.add("is-revealed"));
+  }
+
+  function showFarewell(attending, constellation) {
     if (attending) {
       elements.farewellTitle.textContent = "¡Gracias por confirmar!";
       elements.farewellMessage.textContent = "Tu respuesta y la de tu grupo quedaron guardadas. Será maravilloso celebrar juntos. Ya puedes cerrar este enlace.";
@@ -180,8 +297,34 @@
       elements.farewellTitle.textContent = "Gracias por responder";
       elements.farewellMessage.textContent = "Registramos que no podrás acompañarnos. Agradecemos mucho que nos hayas avisado. Ya puedes cerrar este enlace.";
     }
+    state.constellation = constellation || state.constellation || { confirmedCount: 0, visibleStars: 0 };
+    revealTable(attending);
+    renderConstellation(state.constellation);
     showScreen("screen-farewell");
     announce("Tu respuesta quedó registrada correctamente.");
+  }
+
+  async function downloadInvitationPdf() {
+    elements.downloadError.textContent = "";
+    if (!state.invitation || !window.InvitationPdf) {
+      elements.downloadError.textContent = "La invitación todavía no está lista para descargar.";
+      return;
+    }
+    elements.downloadPdf.disabled = true;
+    elements.downloadPdf.classList.add("is-loading");
+    try {
+      await window.InvitationPdf.download({
+        invitation: state.invitation,
+        event: config.event,
+        imageUrl: "assets/images/retrato-cumpleanos.webp"
+      });
+      announce("El PDF de tu invitación fue generado correctamente.");
+    } catch (error) {
+      elements.downloadError.textContent = error.message || "No fue posible generar el PDF. Intenta nuevamente.";
+    } finally {
+      elements.downloadPdf.disabled = false;
+      elements.downloadPdf.classList.remove("is-loading");
+    }
   }
 
   async function saveMainResponse(response) {
@@ -196,7 +339,7 @@
       state.mainResponse = response;
       if (result.invitation) state.invitation = result.invitation;
       if (response === "SI") showAttendees();
-      else showFarewell(false);
+      else showFarewell(false, result.constellation);
     } catch (error) {
       elements.responseError.textContent = error.message;
     } finally {
@@ -206,6 +349,7 @@
   }
 
   applyEventContent();
+  applyEventActions();
   buildStars();
   initCursorStardust();
   setTimeout(finishIntroAnimation, reducedMotion ? config.animation.reducedMotionDurationMs : config.animation.introDurationMs);
@@ -249,6 +393,8 @@
   elements.goToResponse.addEventListener("click", () => showScreen("screen-response"));
   elements.accept.addEventListener("click", () => saveMainResponse("SI"));
   elements.decline.addEventListener("click", () => saveMainResponse("NO"));
+  elements.addToCalendar.addEventListener("click", downloadCalendarEvent);
+  elements.downloadPdf.addEventListener("click", downloadInvitationPdf);
 
   elements.attendeesForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -265,11 +411,12 @@
 
     setLoading(elements.attendeesForm, true);
     try {
-      await window.InvitationApi.request("saveAttendees", {
+      const result = await window.InvitationApi.request("saveAttendees", {
         invitationId: state.invitation.id,
         attendees
       });
-      showFarewell(true);
+      state.invitation.tableName = result.tableName || "";
+      showFarewell(true, result.constellation);
     } catch (error) {
       elements.attendeesError.textContent = error.message;
     } finally {

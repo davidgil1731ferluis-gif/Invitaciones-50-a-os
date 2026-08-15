@@ -38,10 +38,9 @@
       id: invitation.id,
       primaryName: invitation.primaryName,
       salutationDetail: invitation.salutationDetail || "",
-      tableName: invitation.tableName || "",
       status: invitation.status,
       attendees: activeAttendees(invitation).map(({ id, name, type, response }) => ({
-        id, name, type, response, tableName: invitation.tableName || ""
+        id, name, type, response
       }))
     };
   }
@@ -57,6 +56,14 @@
 
   function requireAdmin(payload) {
     if (payload.token !== "demo-admin-token") throw new Error("La sesión administrativa no es válida.");
+  }
+
+  function constellation(database) {
+    const confirmedCount = database.invitations
+      .filter((invitation) => invitation.active)
+      .flatMap(activeAttendees)
+      .filter((attendee) => attendee.response === "SI").length;
+    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64) };
   }
 
   function normalizeInvitationPayload(payload) {
@@ -92,7 +99,7 @@
           if (item.type === "PRINCIPAL" || payload.response === "NO") item.response = payload.response;
         });
         write(database);
-        return { saved: true, invitation: publicInvitation(invitation) };
+        return { saved: true, invitation: publicInvitation(invitation), constellation: constellation(database) };
       }
 
       if (action === "saveAttendees") {
@@ -105,7 +112,7 @@
         invitation.status = "SI";
         invitation.respondedAt = new Date().toISOString();
         write(database);
-        return { saved: true };
+        return { saved: true, tableName: invitation.tableName || "", constellation: constellation(database) };
       }
 
       if (action === "adminLogin") {

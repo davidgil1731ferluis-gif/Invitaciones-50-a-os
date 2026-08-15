@@ -10,7 +10,14 @@ window.INVITATION_CONFIG = Object.freeze({
     time: "Hora por confirmar",
     place: "Lugar por confirmar",
     address: "Dirección por confirmar",
-    dressCode: "Elegante"
+    dressCode: "Elegante",
+
+    // Formato ISO con zona horaria. Ejemplo Colombia: 2026-09-12T19:00:00-05:00
+    calendarStart: "",
+    calendarEnd: "",
+
+    // Es opcional. Si se deja vacío se buscará automáticamente la dirección en Google Maps.
+    mapsUrl: ""
   },
 
   animation: {

@@ -488,12 +488,12 @@ form label:not(.attendance-options label) {
 .invitation-content { position: relative; z-index: 1; text-align: center; }
 .invitation-kicker { margin: 0; color: var(--violet); font-size: .74rem; font-weight: 850; letter-spacing: .23em; text-transform: uppercase; }
 .invitation-hero {
-  width: min(540px, 92%);
-  margin: 8px auto 20px;
+  width: min(620px, 98%);
+  margin: 4px auto 18px;
   display: grid;
-  grid-template-columns: 126px minmax(0, 1fr);
+  grid-template-columns: 228px minmax(0, 1fr);
   align-items: center;
-  gap: 26px;
+  gap: 18px;
   text-align: left;
 }
 .hero-copy { min-width: 0; }
@@ -517,29 +517,30 @@ form label:not(.attendance-options label) {
 .salutation-prefix { color: #8e7444; font-size: .82em; font-style: italic; }
 .invitation-message { max-width: 46ch; margin: 14px auto 24px; color: #665e74; line-height: 1.7; text-wrap: balance; }
 
-.honoree-photo {
+.honoree-window {
   position: relative;
-  width: 116px;
-  aspect-ratio: 1;
+  width: 220px;
+  aspect-ratio: 260 / 300;
   margin: 0 auto;
-  padding: 5px;
-  border-radius: 50%;
-  background: conic-gradient(from 30deg, #f7e7b9, #9e7733, #f0d28d, #7955a0, #f7e7b9);
-  box-shadow: 0 14px 30px rgba(66, 45, 90, .22), 0 0 0 7px rgba(213, 181, 111, .08);
   isolation: isolate;
 }
-.portrait-orbit {
+.window-photo {
   position: absolute;
-  inset: -9px;
-  z-index: 0;
-  border: 1px dashed rgba(157, 119, 51, .55);
-  border-radius: 50%;
-  animation: orbitSpin 18s linear infinite;
+  inset: 19% 21% 14%;
+  z-index: 1;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 247, 222, .92);
+  border-radius: 48% 48% 40% 40% / 35% 35% 20% 20%;
+  background: linear-gradient(145deg, #f6e3ae, #8f6728);
+  box-shadow: 0 13px 28px rgba(55, 37, 78, .24), inset 0 0 0 2px rgba(255,255,255,.36);
 }
-.portrait-orbit::before, .portrait-orbit::after { content: "✦"; position: absolute; color: #b58c43; font-size: .68rem; line-height: 1; }
-.portrait-orbit::before { top: 7px; left: 7px; }
-.portrait-orbit::after { right: 4px; bottom: 15px; color: #6d5196; }
-.honoree-photo img { position: relative; z-index: 1; width: 100%; height: 100%; border: 2px solid #fffaf0; border-radius: 50%; display: block; object-fit: cover; object-position: center 22%; }
+.window-photo img { width: 100%; height: 100%; border-radius: inherit; display: block; object-fit: cover; object-position: center 24%; filter: contrast(1.03); }
+.window-ornament { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(77, 52, 112, .16)); }
+.window-glow { position: absolute; inset: 14% 18% 8%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(236, 202, 122, .42), transparent 68%); filter: blur(10px); animation: windowGlow 3.4s ease-in-out infinite alternate; }
+.window-spark { position: absolute; z-index: 3; color: #e2bd68; filter: drop-shadow(0 0 6px rgba(226,189,104,.62)); animation: windowSpark 2.7s ease-in-out infinite; }
+.window-spark-one { top: 16%; right: 11%; font-size: .78rem; }
+.window-spark-two { left: 8%; bottom: 23%; color: #8a65ae; font-size: .92rem; animation-delay: -1.2s; }
 
 .magic-divider { width: min(250px, 70%); margin: 15px auto; display: flex; align-items: center; gap: 14px; color: var(--gold); }
 .magic-divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c8a252); }
@@ -686,7 +687,61 @@ form label:not(.attendance-options label) {
 .balloons span::before { content: ""; position: absolute; left: 50%; bottom: -8px; border: 5px solid transparent; border-bottom: 0; border-top: 8px solid var(--balloon-color); transform: translateX(-50%); }
 .balloons span::after { content: ""; position: absolute; left: 50%; top: 66px; width: 1px; height: 80px; background: rgba(255,255,255,.42); }
 
-.farewell-card { overflow: hidden; }
+.farewell-card { width: min(690px, 100%); overflow: hidden; }
+.table-reveal {
+  position: relative;
+  max-width: 440px;
+  margin: 0 auto 24px;
+  padding: 20px 22px;
+  border: 1px solid rgba(184, 145, 66, .48);
+  border-radius: 20px;
+  display: grid;
+  gap: 5px;
+  color: #5b456f;
+  background:
+    radial-gradient(circle at 50% 0, rgba(241, 215, 145, .36), transparent 55%),
+    linear-gradient(145deg, #fffdf7, #f4ecfa);
+  box-shadow: 0 14px 34px rgba(69, 45, 101, .12), inset 0 0 0 5px rgba(255,255,255,.5);
+  opacity: 0;
+  transform: translateY(16px) scale(.96);
+}
+.table-reveal.is-revealed { animation: tableReveal .85s cubic-bezier(.2,.85,.3,1) forwards; }
+.table-reveal small { color: #9a7738; font-size: .68rem; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+.table-reveal strong { color: var(--violet-deep); font-family: Georgia, serif; font-size: clamp(1.8rem, 6vw, 2.55rem); font-weight: 500; }
+.table-reveal > span:last-child { color: var(--muted); font-size: .78rem; }
+.table-magic { position: absolute; top: -13px; left: 50%; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #f8e9b7; background: var(--violet-deep); transform: translateX(-50%); box-shadow: 0 5px 14px rgba(72,49,108,.3); }
+
+.guest-constellation { margin: 8px 0 24px; }
+.guest-constellation h3 { margin: 0 0 13px; color: #4d3478; font-family: Georgia, serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 500; }
+.constellation-sky {
+  position: relative;
+  width: min(520px, 100%);
+  height: 190px;
+  margin: 0 auto;
+  border: 1px solid rgba(229, 202, 132, .28);
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 68% 18%, rgba(132, 93, 181, .32), transparent 26%),
+    radial-gradient(circle at 25% 80%, rgba(198, 155, 68, .16), transparent 28%),
+    linear-gradient(155deg, #17102f, #2d1b50 58%, #120d29);
+  box-shadow: inset 0 0 32px rgba(5,2,16,.36), 0 13px 30px rgba(48,30,76,.12);
+}
+.constellation-sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent, rgba(5,2,16,.22)); pointer-events: none; }
+.constellation-star { position: absolute; z-index: 2; left: var(--star-x); top: var(--star-y); width: var(--star-size); height: var(--star-size); border-radius: 50%; background: #fff7d7; box-shadow: 0 0 5px #f3d98d, 0 0 13px rgba(224,190,109,.62); opacity: 0; transform: scale(.2); animation: constellationBirth .72s ease-out var(--star-delay) forwards, constellationTwinkle 2.8s ease-in-out calc(var(--star-delay) + .8s) infinite alternate; }
+.constellation-star.is-accent { background: #cbb0eb; box-shadow: 0 0 6px #cbb0eb, 0 0 16px rgba(145,104,190,.72); }
+.constellation-lines { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; opacity: 0; animation: constellationLines 1.4s ease-out .8s forwards; }
+.constellation-lines line { stroke: rgba(239, 216, 153, .23); stroke-width: .7; stroke-dasharray: 2.2 2.8; }
+.constellation-count { margin: 11px auto 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }
+.constellation-count strong { color: var(--violet-deep); font-size: 1.08em; }
+
+.final-action-grid { margin: 8px 0 13px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.button-soft { min-height: 48px; border: 1px solid rgba(103,76,157,.22); color: var(--violet-deep); background: rgba(255,255,255,.8); box-shadow: 0 8px 20px rgba(70,48,105,.08); text-decoration: none; }
+.button-soft:hover:not(:disabled) { border-color: rgba(177,139,61,.5); background: #fffaf0; }
+.download-card-button { min-width: min(330px, 100%); }
+.download-icon { font-size: 1.25rem; line-height: 1; }
+.download-card-button.is-loading .download-icon { display: none; }
+.download-error { margin-bottom: 0; }
 .final-stars { margin-top: 24px; color: var(--gold); letter-spacing: 18px; font-size: 1.35rem; }
 .final-stars span { display: inline-block; animation: twinkle 1.6s ease-in-out infinite alternate; }
 .final-stars span:nth-child(2) { animation-delay: .5s; }
@@ -717,6 +772,8 @@ form label:not(.attendance-options label) {
 @keyframes cardShimmer { 0% { left: -42%; opacity: 0; } 20% { opacity: .62; } 100% { left: 125%; opacity: 0; } }
 @keyframes constellationGlow { from { opacity: .28; transform: scale(.8) rotate(-8deg); } to { opacity: .85; transform: scale(1.18) rotate(8deg); } }
 @keyframes orbitSpin { to { transform: rotate(360deg); } }
+@keyframes windowGlow { from { opacity: .52; transform: scale(.94); } to { opacity: 1; transform: scale(1.05); } }
+@keyframes windowSpark { 0%, 100% { opacity: .35; transform: translateY(2px) scale(.8) rotate(-8deg); } 50% { opacity: 1; transform: translateY(-3px) scale(1.2) rotate(8deg); } }
 @keyframes dividerStar { 0%, 100% { opacity: .65; transform: scale(.86) rotate(0); } 50% { opacity: 1; transform: scale(1.25) rotate(18deg); text-shadow: 0 0 12px rgba(213,181,111,.7); } }
 @keyframes buttonGleam { 0%, 65% { transform: translateX(-140%); } 90%, 100% { transform: translateX(140%); } }
 @keyframes cursorSpark {
@@ -724,6 +781,10 @@ form label:not(.attendance-options label) {
   22% { opacity: .95; }
   100% { opacity: 0; transform: translate3d(calc(var(--spark-x) + var(--spark-drift)), calc(var(--spark-y) - 28px), 0) scale(1.15) rotate(var(--spark-rotate)); }
 }
+@keyframes tableReveal { 0% { opacity: 0; transform: translateY(16px) scale(.96); } 58% { opacity: 1; transform: translateY(-3px) scale(1.015); } 100% { opacity: 1; transform: none; } }
+@keyframes constellationBirth { 0% { opacity: 0; transform: scale(.2); } 65% { opacity: 1; transform: scale(1.55); } 100% { opacity: .9; transform: scale(1); } }
+@keyframes constellationTwinkle { from { opacity: .42; filter: brightness(.85); } to { opacity: 1; filter: brightness(1.3); } }
+@keyframes constellationLines { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 760px) {
   .app-shell { min-height: 100svh; padding: max(14px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); }
@@ -745,14 +806,15 @@ form label:not(.attendance-options label) {
   .intro-copy .eyebrow { margin-bottom: 7px; font-size: .68rem; }
   .glass-card { padding: 31px 22px; border-radius: 23px; }
   .invitation-card { min-height: auto; padding: 48px 27px 44px; border-radius: 20px 20px 8px 8px; box-shadow: 0 25px 68px rgba(4, 2, 16, .4); }
-  .invitation-hero { width: min(470px, 94%); grid-template-columns: 96px minmax(0, 1fr); gap: 19px; }
-  .honoree-photo { width: 88px; padding: 4px; }
+  .invitation-hero { width: min(530px, 98%); grid-template-columns: 166px minmax(0, 1fr); gap: 13px; }
+  .honoree-window { width: 160px; }
   .hero-overline { font-size: .61rem; }
   .invitation-content h2 { font-size: clamp(2.15rem, 10vw, 3.7rem); }
   .guest-line { padding: 9px 15px; font-size: 1rem; }
   .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .event-detail { min-height: 118px; padding: 14px 11px; }
   .decision-grid { grid-template-columns: 1fr; }
+  .final-action-grid { grid-template-columns: 1fr; }
   .decision { min-height: 128px; }
   .cursor-stardust { display: none; }
 }
@@ -785,8 +847,8 @@ form label:not(.attendance-options label) {
   .corner-tr, .corner-br { right: 9px; }
   .invitation-kicker { font-size: .63rem; letter-spacing: .18em; }
   .magic-divider { margin-block: 12px; }
-  .invitation-hero { width: 100%; grid-template-columns: 82px minmax(0, 1fr); gap: 14px; margin-bottom: 17px; }
-  .honoree-photo { width: 76px; }
+  .invitation-hero { width: 100%; grid-template-columns: 136px minmax(0, 1fr); gap: 8px; margin-bottom: 17px; }
+  .honoree-window { width: 132px; }
   .invitation-content h2 { font-size: clamp(1.86rem, 9vw, 2.75rem); }
   .hero-overline { letter-spacing: .12em; }
   .guest-line { width: 100%; border-radius: 14px; font-size: .94rem; }
@@ -795,6 +857,8 @@ form label:not(.attendance-options label) {
   .event-detail { min-height: 105px; padding: 13px; }
   .dress-code { margin-bottom: 18px; }
   .admin-entry { width: 38px; height: 38px; right: 11px; bottom: 11px; }
+  .constellation-sky { height: 170px; border-radius: 18px; }
+  .table-reveal { padding-inline: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -802,6 +866,7 @@ form label:not(.attendance-options label) {
   .button-glow, .reveal-piece, .corner { opacity: 1; transform: none; }
   .frame-top, .frame-bottom { transform: scaleX(1); }
   .frame-left, .frame-right { transform: scaleY(1); }
-  .assemble, .portrait-orbit, .magic-divider b, .invitation-card .button-primary::after { animation: none !important; }
+  .assemble, .window-glow, .window-spark, .magic-divider b, .invitation-card .button-primary::after, .table-reveal, .constellation-star, .constellation-lines { animation: none !important; }
+  .table-reveal, .constellation-star, .constellation-lines { opacity: 1 !important; transform: none !important; }
   .cursor-stardust { display: none; }
 }

@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2
+# Invitaciones mágicas de cumpleaños · versión 2.3
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -9,6 +9,35 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Edición y eliminación lógica de invitaciones.
 - Fotografía integrada y optimizada en formato WebP.
 - Caché de lecturas públicas y menos operaciones repetidas contra Sheets.
+- Composición visual equilibrada y nuevas microanimaciones.
+- Destellos elegantes que siguen el cursor únicamente en equipos compatibles.
+- Portada, buzón y tarjeta reorganizados para teléfonos y pantallas pequeñas.
+- Fotografía ampliada dentro de una ventana ornamental inspirada en marcos clásicos.
+- Botón final para descargar una versión A4 de la invitación en PDF.
+- El PDF se genera dentro del navegador, sin enviar la fotografía o los datos a servicios externos.
+- Constelación anónima construida con el total real de personas confirmadas.
+- Revelación animada de la mesa únicamente después de guardar la confirmación.
+- Descarga de evento para calendario y acceso directo a la ubicación.
+- Mesa asignada incluida automáticamente en el PDF.
+
+## Si ya instalaste una versión anterior
+
+Para actualizar a la versión 2.3, reemplaza todos los archivos de GitHub y actualiza `Código.gs` en Apps Script. No necesitas ejecutar nuevamente `actualizarEstructura`, porque no se agregan columnas a Sheets. Sí debes crear una nueva versión de la implementación web de Apps Script.
+
+## Configurar calendario y ubicación
+
+En `assets/js/config.js`, completa los siguientes campos dentro de `event`:
+
+```js
+calendarStart: "2026-09-12T19:00:00-05:00",
+calendarEnd: "2026-09-12T23:00:00-05:00",
+mapsUrl: ""
+```
+
+- Usa fecha y hora ISO. Para Colombia conserva `-05:00` al final.
+- `calendarStart` es el inicio y `calendarEnd` es la finalización del evento.
+- `mapsUrl` es opcional. Si queda vacío, la aplicación buscará en Google Maps el lugar y la dirección escritos en la configuración.
+- Si las fechas todavía están vacías, el botón de calendario se ocultará automáticamente para no mostrar una acción que no funciona.
 
 ## Actualizar el proyecto que ya está funcionando
 
@@ -22,6 +51,8 @@ La foto utilizada por la tarjeta está en:
 
 ```text
 assets/images/retrato-cumpleanos.webp
+assets/images/portrait-window-frame.svg
+assets/images/portrait-window-frame.svg
 ```
 
 ### 2. Actualizar Apps Script
@@ -106,6 +137,7 @@ assets/css/styles.css              Diseño y animaciones
 assets/css/admin.css               Diseño del panel
 assets/js/config.js                Datos del evento y URL del backend
 assets/js/app.js                   Flujo de confirmación
+assets/js/pdf-card.js              Generación local del PDF descargable
 assets/js/admin.js                 Panel, edición y eliminación
 assets/js/api.js                   Conexión optimizada con Apps Script
 assets/js/mock-data.js             Demostración local opcional
@@ -133,3 +165,10 @@ python -m http.server 8080
 - Contraseña: `Cumple2026!`
 
 Antes de publicar vuelve a usar `apiMode: "apps-script"`.
+
+## Ideas para una siguiente fase
+
+1. **50 años en cinco momentos:** una línea de tiempo breve con fotografías y recuerdos de la homenajeada.
+2. **Muro de buenos deseos:** después de confirmar, cada invitado puede dejar un mensaje corto guardado en Sheets.
+3. **Saludo de voz:** reproducir un mensaje corto de la homenajeada al abrir la carta, siempre iniciado por el invitado.
+4. **QR dentro del PDF:** permitir volver a la invitación o abrir directamente la ubicación del evento.
