@@ -92,13 +92,18 @@
               <span class="window-photo">
                 <img src="assets/images/retrato-cumpleanos.webp" width="487" height="722" alt="Retrato de la homenajeada">
               </span>
-              <img class="window-ornament" src="assets/images/portrait-window-frame.svg" width="260" height="300" alt="" aria-hidden="true">
+              <img class="window-ornament" src="assets/images/portrait-window-frame.svg" width="360" height="360" alt="" aria-hidden="true">
               <span class="window-spark window-spark-one" aria-hidden="true">✦</span>
               <span class="window-spark window-spark-two" aria-hidden="true">✧</span>
             </figure>
             <div class="hero-copy">
               <span class="hero-overline">Celebremos juntos</span>
-              <h2 id="invitation-title"><span id="event-title">Mi cumpleaños</span></h2>
+              <h2 id="invitation-title" class="celebration-title" aria-label="Mi cumpleaños">
+                <span id="event-title-main" class="celebration-word">Cumpleaños</span>
+                <span id="event-title-connector" class="celebration-connector">de</span>
+                <strong id="event-title" class="celebration-name">[NOMBRE]</strong>
+              </h2>
+              <span class="title-flourish" aria-hidden="true"><i></i><b>✦</b><i></i></span>
             </div>
           </div>
           <p class="guest-line reveal-piece"><span class="salutation-prefix">Sr/a</span> <strong id="guest-name">Nombre</strong> <span id="guest-treatment"></span></p>
@@ -181,6 +186,10 @@
         <section id="guest-constellation" class="guest-constellation" aria-labelledby="constellation-title" hidden>
           <p class="eyebrow">Una celebración que ya brilla</p>
           <h3 id="constellation-title">Constelación de invitados</h3>
+          <div class="constellation-explainer">
+            <span class="constellation-example-star" aria-hidden="true">✦</span>
+            <p><strong>¿Cómo funciona?</strong><span id="constellation-explanation">Cada estrella representa a una persona que confirmó su asistencia. Es anónima: nunca muestra nombres.</span></p>
+          </div>
           <div id="constellation-sky" class="constellation-sky" aria-hidden="true"></div>
           <p id="constellation-count" class="constellation-count"></p>
         </section>

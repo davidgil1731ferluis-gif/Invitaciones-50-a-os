@@ -488,17 +488,25 @@ form label:not(.attendance-options label) {
 .invitation-content { position: relative; z-index: 1; text-align: center; }
 .invitation-kicker { margin: 0; color: var(--violet); font-size: .74rem; font-weight: 850; letter-spacing: .23em; text-transform: uppercase; }
 .invitation-hero {
-  width: min(620px, 98%);
-  margin: 4px auto 18px;
+  width: min(650px, 100%);
+  margin: 0 auto 22px;
   display: grid;
-  grid-template-columns: 228px minmax(0, 1fr);
+  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
+  gap: clamp(24px, 4vw, 38px);
   text-align: left;
 }
 .hero-copy { min-width: 0; }
-.hero-overline { display: block; margin-bottom: 6px; color: #9d7a37; font-size: .69rem; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; }
-.invitation-content h2 { color: #4a346f; font-size: clamp(2.45rem, 6.4vw, 4.8rem); font-style: italic; line-height: .98; }
+.hero-overline { display: block; margin-bottom: 10px; color: #9d7a37; font-size: .69rem; font-weight: 850; letter-spacing: .19em; text-transform: uppercase; }
+.celebration-title { min-width: 0; margin: 0; color: #4a346f; font-family: Georgia, serif; line-height: .94; }
+.celebration-word { display: block; font-size: clamp(2.25rem, 5.8vw, 4rem); font-style: italic; font-weight: 500; letter-spacing: -.045em; }
+.celebration-connector { display: block; margin: .12em 0 .08em .12em; color: #9b7837; font-size: clamp(1rem, 2.3vw, 1.35rem); font-style: italic; font-weight: 500; letter-spacing: .08em; }
+.celebration-name { display: block; max-width: 100%; color: #4a346f; font-size: clamp(1.75rem, 4.25vw, 3.15rem); font-style: italic; font-weight: 500; line-height: 1.02; letter-spacing: -.035em; overflow-wrap: anywhere; text-wrap: balance; }
+.celebration-title [hidden] { display: none; }
+.title-flourish { width: min(210px, 88%); margin-top: 15px; display: flex; align-items: center; gap: 9px; color: #c49a48; }
+.title-flourish i { flex: 1; height: 1px; background: linear-gradient(90deg, #c39b4b, transparent); }
+.title-flourish i:last-child { background: linear-gradient(90deg, transparent, #c39b4b); }
+.title-flourish b { font-size: .68rem; }
 .guest-line {
   width: fit-content;
   max-width: 100%;
@@ -511,6 +519,8 @@ form label:not(.attendance-options label) {
   font-family: Georgia, serif;
   font-size: 1.08rem;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .guest-line strong { color: var(--violet-deep); font-size: 1.18em; }
 .guest-line #guest-treatment { color: var(--violet-deep); }
@@ -519,25 +529,25 @@ form label:not(.attendance-options label) {
 
 .honoree-window {
   position: relative;
-  width: 220px;
-  aspect-ratio: 260 / 300;
+  width: 250px;
+  aspect-ratio: 1;
   margin: 0 auto;
   isolation: isolate;
 }
 .window-photo {
   position: absolute;
-  inset: 19% 21% 14%;
+  inset: 19% 17% 17%;
   z-index: 1;
   padding: 4px;
   overflow: hidden;
   border: 1px solid rgba(255, 247, 222, .92);
-  border-radius: 48% 48% 40% 40% / 35% 35% 20% 20%;
+  border-radius: 48% 48% 34% 34% / 34% 34% 22% 22%;
   background: linear-gradient(145deg, #f6e3ae, #8f6728);
-  box-shadow: 0 13px 28px rgba(55, 37, 78, .24), inset 0 0 0 2px rgba(255,255,255,.36);
+  box-shadow: 0 16px 34px rgba(55, 37, 78, .24), inset 0 0 0 2px rgba(255,255,255,.42);
 }
 .window-photo img { width: 100%; height: 100%; border-radius: inherit; display: block; object-fit: cover; object-position: center 24%; filter: contrast(1.03); }
-.window-ornament { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(77, 52, 112, .16)); }
-.window-glow { position: absolute; inset: 14% 18% 8%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(236, 202, 122, .42), transparent 68%); filter: blur(10px); animation: windowGlow 3.4s ease-in-out infinite alternate; }
+.window-ornament { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 10px 16px rgba(77, 52, 112, .17)); }
+.window-glow { position: absolute; inset: 11% 10% 7%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(236, 202, 122, .46), transparent 68%); filter: blur(11px); animation: windowGlow 3.4s ease-in-out infinite alternate; }
 .window-spark { position: absolute; z-index: 3; color: #e2bd68; filter: drop-shadow(0 0 6px rgba(226,189,104,.62)); animation: windowSpark 2.7s ease-in-out infinite; }
 .window-spark-one { top: 16%; right: 11%; font-size: .78rem; }
 .window-spark-two { left: 8%; bottom: 23%; color: #8a65ae; font-size: .92rem; animation-delay: -1.2s; }
@@ -713,6 +723,11 @@ form label:not(.attendance-options label) {
 
 .guest-constellation { margin: 8px 0 24px; }
 .guest-constellation h3 { margin: 0 0 13px; color: #4d3478; font-family: Georgia, serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 500; }
+.constellation-explainer { max-width: 560px; margin: 0 auto 14px; padding: 12px 15px; border: 1px solid rgba(220,189,111,.2); border-radius: 15px; display: grid; grid-template-columns: 31px 1fr; align-items: center; gap: 10px; color: #e9e0f6; background: linear-gradient(135deg, rgba(46,30,82,.94), rgba(19,12,43,.94)); text-align: left; }
+.constellation-example-star { color: #f1d78b; font-size: 1.22rem; text-align: center; filter: drop-shadow(0 0 7px rgba(241,215,139,.72)); animation: constellationTwinkle 2.2s ease-in-out infinite alternate; }
+.constellation-explainer p { margin: 0; font-size: .78rem; line-height: 1.45; }
+.constellation-explainer strong { display: block; margin-bottom: 2px; color: #f3d995; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+.constellation-explainer span:last-child { color: #d7cee8; }
 .constellation-sky {
   position: relative;
   width: min(520px, 100%);
@@ -806,10 +821,13 @@ form label:not(.attendance-options label) {
   .intro-copy .eyebrow { margin-bottom: 7px; font-size: .68rem; }
   .glass-card { padding: 31px 22px; border-radius: 23px; }
   .invitation-card { min-height: auto; padding: 48px 27px 44px; border-radius: 20px 20px 8px 8px; box-shadow: 0 25px 68px rgba(4, 2, 16, .4); }
-  .invitation-hero { width: min(530px, 98%); grid-template-columns: 166px minmax(0, 1fr); gap: 13px; }
-  .honoree-window { width: 160px; }
-  .hero-overline { font-size: .61rem; }
-  .invitation-content h2 { font-size: clamp(2.15rem, 10vw, 3.7rem); }
+  .invitation-hero { width: min(520px, 100%); grid-template-columns: 1fr; gap: 8px; text-align: center; }
+  .honoree-window { width: min(230px, 74vw); }
+  .hero-copy { width: min(430px, 100%); margin: 0 auto; }
+  .hero-overline { font-size: .62rem; }
+  .celebration-word { font-size: clamp(2.5rem, 11vw, 3.75rem); }
+  .celebration-name { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .title-flourish { margin-inline: auto; }
   .guest-line { padding: 9px 15px; font-size: 1rem; }
   .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .event-detail { min-height: 118px; padding: 14px 11px; }
@@ -847,9 +865,10 @@ form label:not(.attendance-options label) {
   .corner-tr, .corner-br { right: 9px; }
   .invitation-kicker { font-size: .63rem; letter-spacing: .18em; }
   .magic-divider { margin-block: 12px; }
-  .invitation-hero { width: 100%; grid-template-columns: 136px minmax(0, 1fr); gap: 8px; margin-bottom: 17px; }
-  .honoree-window { width: 132px; }
-  .invitation-content h2 { font-size: clamp(1.86rem, 9vw, 2.75rem); }
+  .invitation-hero { width: 100%; grid-template-columns: 1fr; gap: 5px; margin-bottom: 18px; }
+  .honoree-window { width: min(205px, 70vw); }
+  .celebration-word { font-size: clamp(2.25rem, 12vw, 3.2rem); }
+  .celebration-name { font-size: clamp(1.82rem, 9.5vw, 2.65rem); }
   .hero-overline { letter-spacing: .12em; }
   .guest-line { width: 100%; border-radius: 14px; font-size: .94rem; }
   .invitation-message { margin-bottom: 18px; font-size: .92rem; }

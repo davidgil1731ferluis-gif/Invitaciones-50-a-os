@@ -11,6 +11,9 @@
     secretCode: document.getElementById("secret-code"),
     secretError: document.getElementById("secret-error"),
     invitationCard: document.getElementById("invitation-card"),
+    eventTitleMain: document.getElementById("event-title-main"),
+    eventTitleConnector: document.getElementById("event-title-connector"),
+    eventTitleName: document.getElementById("event-title"),
     guestName: document.getElementById("guest-name"),
     guestTreatment: document.getElementById("guest-treatment"),
     responseName: document.getElementById("response-name"),
@@ -29,6 +32,7 @@
     guestConstellation: document.getElementById("guest-constellation"),
     constellationSky: document.getElementById("constellation-sky"),
     constellationCount: document.getElementById("constellation-count"),
+    constellationExplanation: document.getElementById("constellation-explanation"),
     addToCalendar: document.getElementById("add-to-calendar"),
     openLocation: document.getElementById("open-location"),
     downloadPdf: document.getElementById("download-card-pdf"),
@@ -62,7 +66,15 @@
 
   function applyEventContent() {
     const event = config.event;
-    document.getElementById("event-title").textContent = event.title;
+    const fullTitle = String(event.title || "Mi cumpleaños").trim();
+    const titleParts = fullTitle.match(/^(.+?)\s+de\s+(.+)$/i);
+    const mainTitle = titleParts ? titleParts[1] : fullTitle;
+    const honoreeName = titleParts ? titleParts[2] : "";
+    elements.eventTitleMain.textContent = mainTitle;
+    elements.eventTitleConnector.hidden = !honoreeName;
+    elements.eventTitleName.hidden = !honoreeName;
+    elements.eventTitleName.textContent = honoreeName;
+    document.getElementById("invitation-title").setAttribute("aria-label", fullTitle);
     document.getElementById("event-message").textContent = event.message;
     document.getElementById("event-date").textContent = event.date;
     document.getElementById("event-time").textContent = event.time;
@@ -274,8 +286,12 @@
       lines.appendChild(line);
     });
     elements.constellationSky.prepend(lines);
+    const capped = confirmedCount > visibleStars;
+    elements.constellationExplanation.textContent = capped
+      ? `Cada destello representa la celebración. Mostramos ${visibleStars} estrellas para mantener el cielo legible, pero el contador incluye a todas las personas confirmadas. Nunca se muestran nombres.`
+      : "Cada estrella representa a una persona que confirmó su asistencia. Se suman el invitado principal y sus acompañantes, sin mostrar ningún nombre.";
     elements.constellationCount.innerHTML = confirmedCount
-      ? `<strong>${confirmedCount}</strong> ${confirmedCount === 1 ? "persona ya ilumina" : "personas ya iluminan"} esta celebración.`
+      ? `<strong>${confirmedCount}</strong> ${confirmedCount === 1 ? "persona confirmada ilumina" : "personas confirmadas iluminan"} esta celebración.`
       : "La primera estrella de esta celebración aún está por encenderse.";
     elements.guestConstellation.hidden = false;
   }

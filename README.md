@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2.3
+# Invitaciones mágicas de cumpleaños · versión 2.4
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -9,20 +9,28 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Edición y eliminación lógica de invitaciones.
 - Fotografía integrada y optimizada en formato WebP.
 - Caché de lecturas públicas y menos operaciones repetidas contra Sheets.
-- Composición visual equilibrada y nuevas microanimaciones.
+- Composición editorial equilibrada: el título, el nombre y la información ya no invaden el marco.
 - Destellos elegantes que siguen el cursor únicamente en equipos compatibles.
 - Portada, buzón y tarjeta reorganizados para teléfonos y pantallas pequeñas.
-- Fotografía ampliada dentro de una ventana ornamental inspirada en marcos clásicos.
+- Fotografía ampliada dentro de una ventana ornamental recreada a partir del marco de referencia.
 - Botón final para descargar una versión A4 de la invitación en PDF.
 - El PDF se genera dentro del navegador, sin enviar la fotografía o los datos a servicios externos.
-- Constelación anónima construida con el total real de personas confirmadas.
+- Constelación anónima construida con el total real de personas confirmadas y explicación visible de su funcionamiento.
 - Revelación animada de la mesa únicamente después de guardar la confirmación.
 - Descarga de evento para calendario y acceso directo a la ubicación.
 - Mesa asignada incluida automáticamente en el PDF.
 
 ## Si ya instalaste una versión anterior
 
-Para actualizar a la versión 2.3, reemplaza todos los archivos de GitHub y actualiza `Código.gs` en Apps Script. No necesitas ejecutar nuevamente `actualizarEstructura`, porque no se agregan columnas a Sheets. Sí debes crear una nueva versión de la implementación web de Apps Script.
+Para actualizar a la versión 2.4, reemplaza todos los archivos de GitHub. Si ya instalaste la versión 2.3, no se agregan columnas a Sheets ni cambió el backend, por lo que no necesitas ejecutar `actualizarEstructura` ni volver a implementar Apps Script.
+
+## Cómo funciona la constelación
+
+- Aparece después de guardar la respuesta de asistencia.
+- Cada estrella representa a una persona confirmada, incluyendo al invitado principal y sus acompañantes.
+- Se calcula con todas las invitaciones activas, no solamente con el grupo que acaba de responder.
+- Es completamente anónima: no muestra nombres, códigos ni grupos.
+- Para mantener el dibujo legible se muestran máximo 64 estrellas; si hay más confirmados, el contador sí conserva el total real.
 
 ## Configurar calendario y ubicación
 
@@ -51,7 +59,6 @@ La foto utilizada por la tarjeta está en:
 
 ```text
 assets/images/retrato-cumpleanos.webp
-assets/images/portrait-window-frame.svg
 assets/images/portrait-window-frame.svg
 ```
 
