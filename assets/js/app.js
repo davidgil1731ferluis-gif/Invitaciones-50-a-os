@@ -2,6 +2,7 @@
   const config = window.INVITATION_CONFIG;
   const screens = [...document.querySelectorAll(".screen")];
   const liveRegion = document.getElementById("live-region");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const state = { invitation: null, mainResponse: null };
 
   const elements = {
@@ -70,6 +71,52 @@
       star.style.cssText = `left:${Math.random() * 100}%;top:${Math.random() * 82}%;width:${size}px;height:${size}px;animation-delay:${Math.random() * 4}s`;
       container.appendChild(star);
     }
+  }
+
+  function initCursorStardust() {
+    const container = document.getElementById("cursor-stardust");
+    if (!container || reducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
+
+    let lastX = -100;
+    let lastY = -100;
+    let lastEmission = 0;
+    let pendingPoint = null;
+    let frameRequested = false;
+    const symbols = ["✦", "✧", "·", "✦"];
+    const colors = ["#f3dfa1", "#d8b86e", "#bda1e2", "#fff5d7"];
+
+    function emitSpark(x, y) {
+      const spark = document.createElement("span");
+      const drift = Math.round(Math.random() * 26 - 13);
+      spark.className = "cursor-spark";
+      spark.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      spark.style.setProperty("--spark-x", `${Math.round(x - 5)}px`);
+      spark.style.setProperty("--spark-y", `${Math.round(y - 5)}px`);
+      spark.style.setProperty("--spark-drift", `${drift}px`);
+      spark.style.setProperty("--spark-rotate", `${Math.round(Math.random() * 90 - 45)}deg`);
+      spark.style.setProperty("--spark-size", `${Math.round(Math.random() * 6 + 7)}px`);
+      spark.style.setProperty("--spark-color", colors[Math.floor(Math.random() * colors.length)]);
+      container.appendChild(spark);
+      spark.addEventListener("animationend", () => spark.remove(), { once: true });
+      while (container.childElementCount > 24) container.firstElementChild.remove();
+    }
+
+    window.addEventListener("pointermove", (event) => {
+      pendingPoint = { x: event.clientX, y: event.clientY, time: performance.now() };
+      if (frameRequested) return;
+      frameRequested = true;
+      requestAnimationFrame(() => {
+        frameRequested = false;
+        if (!pendingPoint) return;
+        const distance = Math.hypot(pendingPoint.x - lastX, pendingPoint.y - lastY);
+        if (distance >= 18 && pendingPoint.time - lastEmission >= 34) {
+          emitSpark(pendingPoint.x, pendingPoint.y);
+          lastX = pendingPoint.x;
+          lastY = pendingPoint.y;
+          lastEmission = pendingPoint.time;
+        }
+      });
+    }, { passive: true });
   }
 
   function finishIntroAnimation() {
@@ -160,7 +207,7 @@
 
   applyEventContent();
   buildStars();
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  initCursorStardust();
   setTimeout(finishIntroAnimation, reducedMotion ? config.animation.reducedMotionDurationMs : config.animation.introDurationMs);
 
   if (config.apiMode !== "mock") {

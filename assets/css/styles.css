@@ -399,17 +399,19 @@ form label:not(.attendance-options label) {
 /* Carta ensamblable */
 .invitation-card {
   position: relative;
-  width: min(760px, 100%);
-  min-height: 680px;
-  padding: clamp(44px, 7vw, 78px);
-  border-radius: 6px;
+  width: min(730px, 100%);
+  min-height: 640px;
+  padding: clamp(42px, 6vw, 68px);
+  border: 1px solid rgba(255, 241, 199, .76);
+  border-radius: 22px 22px 9px 9px;
   overflow: hidden;
   color: var(--ink);
   background:
-    radial-gradient(circle at 50% -10%, rgba(236, 211, 147, .25), transparent 38%),
+    radial-gradient(circle at 50% -8%, rgba(236, 211, 147, .3), transparent 36%),
+    radial-gradient(circle at 12% 82%, rgba(108, 78, 158, .07), transparent 25%),
     linear-gradient(rgba(255,253,247,.96), rgba(255,250,238,.98)),
     var(--paper);
-  box-shadow: 0 34px 100px rgba(4, 2, 16, .45);
+  box-shadow: 0 38px 110px rgba(4, 2, 16, .46), 0 0 0 1px rgba(211, 181, 111, .12);
   isolation: isolate;
 }
 
@@ -419,8 +421,43 @@ form label:not(.attendance-options label) {
   inset: 14px;
   z-index: -1;
   border: 1px solid rgba(192, 155, 77, .35);
+  border-radius: 15px 15px 4px 4px;
   pointer-events: none;
 }
+
+.invitation-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: .58;
+  background-image:
+    radial-gradient(circle at 11% 14%, rgba(184, 144, 62, .45) 0 1px, transparent 2px),
+    radial-gradient(circle at 89% 18%, rgba(105, 77, 153, .32) 0 1px, transparent 2px),
+    radial-gradient(circle at 85% 82%, rgba(184, 144, 62, .32) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 16% 88%, rgba(105, 77, 153, .27) 0 1px, transparent 2px);
+}
+
+.card-shimmer {
+  position: absolute;
+  inset: -45% auto -45% -42%;
+  z-index: 4;
+  width: 24%;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+  transform: rotate(14deg);
+}
+
+.assemble .card-shimmer { animation: cardShimmer 1.4s ease-out .45s forwards; }
+
+.card-constellation { position: absolute; inset: 0; z-index: 0; pointer-events: none; color: rgba(174, 132, 56, .48); }
+.card-constellation span { position: absolute; animation: constellationGlow 3.6s ease-in-out infinite alternate; }
+.card-constellation span:nth-child(1) { top: 8%; left: 8%; font-size: .72rem; }
+.card-constellation span:nth-child(2) { top: 18%; right: 7%; font-size: 1rem; animation-delay: -.8s; }
+.card-constellation span:nth-child(3) { right: 9%; bottom: 18%; font-size: .72rem; animation-delay: -1.6s; }
+.card-constellation span:nth-child(4) { left: 7%; bottom: 27%; font-size: 1.4rem; animation-delay: -2.1s; }
+.card-constellation span:nth-child(5) { left: 14%; bottom: 8%; font-size: .9rem; animation-delay: -2.7s; }
 
 .card-frame {
   position: absolute;
@@ -449,61 +486,84 @@ form label:not(.attendance-options label) {
 .corner-br { bottom: 14px; right: 14px; }
 
 .invitation-content { position: relative; z-index: 1; text-align: center; }
-.invitation-kicker { margin: 0; color: var(--violet); font-size: .78rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
-.invitation-content h2 { color: #4a346f; font-size: clamp(2.6rem, 8vw, 5.8rem); font-style: italic; }
-.guest-line { margin: 14px 0; color: #5f566e; font-family: Georgia, serif; font-size: 1.16rem; }
-.guest-line strong { color: var(--violet-deep); font-size: 1.24em; }
+.invitation-kicker { margin: 0; color: var(--violet); font-size: .74rem; font-weight: 850; letter-spacing: .23em; text-transform: uppercase; }
+.invitation-hero {
+  width: min(540px, 92%);
+  margin: 8px auto 20px;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: center;
+  gap: 26px;
+  text-align: left;
+}
+.hero-copy { min-width: 0; }
+.hero-overline { display: block; margin-bottom: 6px; color: #9d7a37; font-size: .69rem; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; }
+.invitation-content h2 { color: #4a346f; font-size: clamp(2.45rem, 6.4vw, 4.8rem); font-style: italic; line-height: .98; }
+.guest-line {
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 10px 18px;
+  border: 1px solid rgba(176, 143, 73, .24);
+  border-radius: 999px;
+  color: #5f566e;
+  background: linear-gradient(90deg, rgba(250, 239, 209, .28), rgba(255,255,255,.72), rgba(250, 239, 209, .28));
+  font-family: Georgia, serif;
+  font-size: 1.08rem;
+  line-height: 1.4;
+}
+.guest-line strong { color: var(--violet-deep); font-size: 1.18em; }
 .guest-line #guest-treatment { color: var(--violet-deep); }
-.invitation-message { max-width: 48ch; margin: 17px auto 28px; color: #665e74; line-height: 1.72; }
+.salutation-prefix { color: #8e7444; font-size: .82em; font-style: italic; }
+.invitation-message { max-width: 46ch; margin: 14px auto 24px; color: #665e74; line-height: 1.7; text-wrap: balance; }
 
 .honoree-photo {
   position: relative;
-  width: clamp(150px, 28vw, 210px);
-  aspect-ratio: 4 / 5;
-  margin: 18px auto 22px;
-  padding: 6px;
-  border: 1px solid rgba(172, 130, 52, .55);
-  border-radius: 999px 999px 22px 22px;
-  background: linear-gradient(145deg, #f4dfa8, #8b652b);
-  box-shadow: 0 16px 34px rgba(66, 45, 90, .2);
-  overflow: hidden;
-}
-.honoree-photo::after {
-  content: "✦";
-  position: absolute;
-  right: 10px;
-  bottom: 8px;
-  width: 30px;
-  height: 30px;
+  width: 116px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 5px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: #f8e6ae;
-  background: var(--violet-deep);
-  box-shadow: 0 4px 12px rgba(34, 21, 58, .3);
+  background: conic-gradient(from 30deg, #f7e7b9, #9e7733, #f0d28d, #7955a0, #f7e7b9);
+  box-shadow: 0 14px 30px rgba(66, 45, 90, .22), 0 0 0 7px rgba(213, 181, 111, .08);
+  isolation: isolate;
 }
-.honoree-photo img { width: 100%; height: 100%; border-radius: inherit; display: block; object-fit: cover; object-position: center 28%; }
+.portrait-orbit {
+  position: absolute;
+  inset: -9px;
+  z-index: 0;
+  border: 1px dashed rgba(157, 119, 51, .55);
+  border-radius: 50%;
+  animation: orbitSpin 18s linear infinite;
+}
+.portrait-orbit::before, .portrait-orbit::after { content: "✦"; position: absolute; color: #b58c43; font-size: .68rem; line-height: 1; }
+.portrait-orbit::before { top: 7px; left: 7px; }
+.portrait-orbit::after { right: 4px; bottom: 15px; color: #6d5196; }
+.honoree-photo img { position: relative; z-index: 1; width: 100%; height: 100%; border: 2px solid #fffaf0; border-radius: 50%; display: block; object-fit: cover; object-position: center 22%; }
 
-.magic-divider { width: min(250px, 70%); margin: 18px auto; display: flex; align-items: center; gap: 14px; color: var(--gold); }
+.magic-divider { width: min(250px, 70%); margin: 15px auto; display: flex; align-items: center; gap: 14px; color: var(--gold); }
 .magic-divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c8a252); }
 .magic-divider span:last-child { transform: rotate(180deg); }
+.magic-divider b { display: inline-block; animation: dividerStar 2.4s ease-in-out infinite; }
 
-.event-grid { margin: 28px 0 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+.event-grid { margin: 22px 0 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .event-detail {
-  min-height: 145px;
-  padding: 22px;
+  min-height: 130px;
+  padding: 18px;
   border: 1px solid rgba(121, 89, 165, .16);
   border-radius: 17px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: rgba(117, 80, 161, .045);
+  background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(117, 80, 161, .045));
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
+.event-detail:hover { transform: translateY(-3px); border-color: rgba(164, 123, 49, .3); box-shadow: 0 13px 26px rgba(74, 52, 111, .08); }
 .detail-icon { margin-bottom: 7px; color: var(--gold); font-size: 1.4rem; }
 .event-detail small { color: var(--violet); font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .event-detail strong { margin: 6px 0 3px; font-family: Georgia, serif; font-size: 1.08rem; }
 .event-detail span:last-child { color: var(--muted); font-size: .88rem; }
-.dress-code { margin: 18px 0 27px; color: var(--muted); font-size: .9rem; }
+.dress-code { width: fit-content; margin: 16px auto 23px; padding: 7px 12px; border-radius: 999px; color: var(--muted); background: rgba(107, 76, 157, .06); font-size: .86rem; }
 
 .reveal-piece { opacity: 0; transform: translateY(24px); }
 .assemble .frame-top, .assemble .frame-bottom { animation: drawHorizontal .9s ease-out forwards; }
@@ -519,6 +579,30 @@ form label:not(.attendance-options label) {
 .assemble .reveal-piece:nth-child(7) { animation-delay: 1.48s; }
 .assemble .reveal-piece:nth-child(8) { animation-delay: 1.68s; }
 .assemble .reveal-piece:nth-child(9) { animation-delay: 1.84s; }
+.assemble { animation: cardArrival .75s ease-out both, cardFloat 8s ease-in-out 1.7s infinite; }
+
+.invitation-card .button-primary { position: relative; overflow: hidden; }
+.invitation-card .button-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+  transform: translateX(-140%);
+  animation: buttonGleam 4.5s ease-in-out 2.2s infinite;
+}
+
+.cursor-stardust { position: fixed; inset: 0; z-index: 80; overflow: hidden; contain: strict; pointer-events: none; }
+.cursor-spark {
+  position: fixed;
+  left: 0;
+  top: 0;
+  color: var(--spark-color, #f1d98f);
+  font-size: var(--spark-size, 11px);
+  line-height: 1;
+  filter: drop-shadow(0 0 5px rgba(244, 218, 148, .72));
+  will-change: transform, opacity;
+  animation: cursorSpark .78s ease-out forwards;
+}
 
 .admin-entry {
   position: fixed;
@@ -628,32 +712,89 @@ form label:not(.attendance-options label) {
 @keyframes cornerAppear { to { opacity: 1; transform: scale(1) rotate(0); } }
 @keyframes pieceAppear { to { opacity: 1; transform: none; } }
 @keyframes balloonRise { 0% { transform: translateY(0) rotate(-5deg); opacity: 0; } 12% { opacity: 1; } 55% { transform: translateY(-55vh) rotate(7deg); } 100% { transform: translateY(-125vh) rotate(-4deg); opacity: .75; } }
+@keyframes cardArrival { from { opacity: .25; transform: translateY(18px) scale(.975); } to { opacity: 1; transform: none; } }
+@keyframes cardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes cardShimmer { 0% { left: -42%; opacity: 0; } 20% { opacity: .62; } 100% { left: 125%; opacity: 0; } }
+@keyframes constellationGlow { from { opacity: .28; transform: scale(.8) rotate(-8deg); } to { opacity: .85; transform: scale(1.18) rotate(8deg); } }
+@keyframes orbitSpin { to { transform: rotate(360deg); } }
+@keyframes dividerStar { 0%, 100% { opacity: .65; transform: scale(.86) rotate(0); } 50% { opacity: 1; transform: scale(1.25) rotate(18deg); text-shadow: 0 0 12px rgba(213,181,111,.7); } }
+@keyframes buttonGleam { 0%, 65% { transform: translateX(-140%); } 90%, 100% { transform: translateX(140%); } }
+@keyframes cursorSpark {
+  0% { opacity: 0; transform: translate3d(var(--spark-x), var(--spark-y), 0) scale(.25) rotate(0); }
+  22% { opacity: .95; }
+  100% { opacity: 0; transform: translate3d(calc(var(--spark-x) + var(--spark-drift)), calc(var(--spark-y) - 28px), 0) scale(1.15) rotate(var(--spark-rotate)); }
+}
 
 @media (max-width: 760px) {
-  .app-shell { padding: 18px; }
-  #screen-intro { grid-template-columns: 1fr; align-content: center; text-align: center; gap: 5px; }
-  .mail-scene { height: 370px; margin: 0 auto; }
-  .mailbox { bottom: -15px; transform: translateX(-50%) scale(.78); transform-origin: bottom; }
+  .app-shell { min-height: 100svh; padding: max(14px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)); }
+  .screen { min-height: calc(100svh - 32px); align-content: center; }
+  #screen-intro {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(235px, 39svh) auto;
+    align-content: center;
+    gap: 12px;
+    padding-block: 8px;
+    text-align: center;
+  }
+  .mail-scene { width: min(310px, 92vw); height: min(39svh, 315px); min-height: 235px; margin: 0 auto; }
+  .mailbox { bottom: 0; transform: translateX(-50%) scale(.61); transform-origin: bottom; }
   .envelope-flying { animation-name: envelopeFallMobile; }
-  .intro-copy { margin: 0 auto; }
+  .spark-trail { left: 24%; width: 120px; height: 190px; background-size: 24px 26px; }
+  .intro-copy { position: relative; z-index: 8; width: min(520px, 100%); margin: 0 auto; padding: 2px 4px 10px; }
+  .intro-copy h1 { margin-bottom: 19px; font-size: clamp(1.9rem, 9vw, 3.1rem); }
+  .intro-copy .eyebrow { margin-bottom: 7px; font-size: .68rem; }
   .glass-card { padding: 31px 22px; border-radius: 23px; }
-  .invitation-card { min-height: auto; padding: 52px 29px; }
-  .honoree-photo { width: 165px; }
-  .event-grid, .decision-grid { grid-template-columns: 1fr; }
+  .invitation-card { min-height: auto; padding: 48px 27px 44px; border-radius: 20px 20px 8px 8px; box-shadow: 0 25px 68px rgba(4, 2, 16, .4); }
+  .invitation-hero { width: min(470px, 94%); grid-template-columns: 96px minmax(0, 1fr); gap: 19px; }
+  .honoree-photo { width: 88px; padding: 4px; }
+  .hero-overline { font-size: .61rem; }
+  .invitation-content h2 { font-size: clamp(2.15rem, 10vw, 3.7rem); }
+  .guest-line { padding: 9px 15px; font-size: 1rem; }
+  .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .event-detail { min-height: 118px; padding: 14px 11px; }
+  .decision-grid { grid-template-columns: 1fr; }
   .decision { min-height: 128px; }
+  .cursor-stardust { display: none; }
 }
 
 @keyframes envelopeFallMobile {
-  0% { left: 3%; top: -100px; transform: rotate(-15deg) scale(.68); }
-  36% { left: 57%; top: 15px; transform: rotate(10deg) scale(.78); }
-  66% { left: 18%; top: 100px; transform: rotate(-6deg) scale(.72); }
-  100% { left: 39%; top: 190px; transform: rotate(0) scale(.35); opacity: 0; }
+  0% { left: 5%; top: -90px; transform: rotate(-15deg) scale(.58); }
+  36% { left: 56%; top: 0; transform: rotate(10deg) scale(.67); }
+  66% { left: 18%; top: 68px; transform: rotate(-6deg) scale(.62); }
+  100% { left: 37%; top: 138px; transform: rotate(0) scale(.29); opacity: 0; }
 }
 
 @media (max-width: 430px) {
+  #screen-intro { grid-template-rows: 218px auto; gap: 8px; }
+  .mail-scene { height: 218px; min-height: 218px; }
+  .mailbox { transform: translateX(-50%) scale(.52); }
+  .intro-copy h1 { font-size: clamp(1.82rem, 9vw, 2.45rem); }
+  .button { min-height: 50px; padding-inline: 19px; }
   .attendance-options { grid-template-columns: 1fr; }
-  .invitation-card { padding-inline: 24px; }
-  .event-detail { min-height: 125px; }
+  .invitation-card { padding: 43px 20px 38px; }
+  .invitation-card::before { inset: 10px; }
+  .frame-top, .frame-bottom { left: 18px; right: 18px; }
+  .frame-top { top: 18px; }
+  .frame-bottom { bottom: 18px; }
+  .frame-left, .frame-right { top: 18px; bottom: 18px; }
+  .frame-left { left: 18px; }
+  .frame-right { right: 18px; }
+  .corner-tl, .corner-tr { top: 9px; }
+  .corner-bl, .corner-br { bottom: 9px; }
+  .corner-tl, .corner-bl { left: 9px; }
+  .corner-tr, .corner-br { right: 9px; }
+  .invitation-kicker { font-size: .63rem; letter-spacing: .18em; }
+  .magic-divider { margin-block: 12px; }
+  .invitation-hero { width: 100%; grid-template-columns: 82px minmax(0, 1fr); gap: 14px; margin-bottom: 17px; }
+  .honoree-photo { width: 76px; }
+  .invitation-content h2 { font-size: clamp(1.86rem, 9vw, 2.75rem); }
+  .hero-overline { letter-spacing: .12em; }
+  .guest-line { width: 100%; border-radius: 14px; font-size: .94rem; }
+  .invitation-message { margin-bottom: 18px; font-size: .92rem; }
+  .event-grid { grid-template-columns: 1fr; gap: 9px; margin-block: 17px; }
+  .event-detail { min-height: 105px; padding: 13px; }
+  .dress-code { margin-bottom: 18px; }
+  .admin-entry { width: 38px; height: 38px; right: 11px; bottom: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -661,4 +802,6 @@ form label:not(.attendance-options label) {
   .button-glow, .reveal-piece, .corner { opacity: 1; transform: none; }
   .frame-top, .frame-bottom { transform: scaleX(1); }
   .frame-left, .frame-right { transform: scaleY(1); }
+  .assemble, .portrait-orbit, .magic-divider b, .invitation-card .button-primary::after { animation: none !important; }
+  .cursor-stardust { display: none; }
 }
