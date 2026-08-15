@@ -12,7 +12,6 @@
     secretError: document.getElementById("secret-error"),
     invitationCard: document.getElementById("invitation-card"),
     eventTitleMain: document.getElementById("event-title-main"),
-    eventTitleConnector: document.getElementById("event-title-connector"),
     eventTitleName: document.getElementById("event-title"),
     guestName: document.getElementById("guest-name"),
     guestTreatment: document.getElementById("guest-treatment"),
@@ -66,14 +65,13 @@
 
   function applyEventContent() {
     const event = config.event;
-    const fullTitle = String(event.title || "Mi cumpleaños").trim();
-    const titleParts = fullTitle.match(/^(.+?)\s+de\s+(.+)$/i);
+    const fullTitle = String(event.title || "Celebrando mis 50 años").trim();
+    const titleParts = fullTitle.match(/^(celebrando|celebración de)\s+(.+)$/i);
     const mainTitle = titleParts ? titleParts[1] : fullTitle;
-    const honoreeName = titleParts ? titleParts[2] : "";
+    const highlightedTitle = titleParts ? titleParts[2] : "";
     elements.eventTitleMain.textContent = mainTitle;
-    elements.eventTitleConnector.hidden = !honoreeName;
-    elements.eventTitleName.hidden = !honoreeName;
-    elements.eventTitleName.textContent = honoreeName;
+    elements.eventTitleName.hidden = !highlightedTitle;
+    elements.eventTitleName.textContent = highlightedTitle;
     document.getElementById("invitation-title").setAttribute("aria-label", fullTitle);
     document.getElementById("event-message").textContent = event.message;
     document.getElementById("event-date").textContent = event.date;
@@ -251,6 +249,29 @@
     };
   }
 
+  function currentGroupConstellation(attendeeResponses) {
+    const responseById = new Map((attendeeResponses || []).map((item) => [String(item.id), item.response]));
+    const group = state.invitation?.attendees || [];
+    let confirmedCount = group.reduce((total, attendee) => {
+      const response = responseById.get(String(attendee.id)) || attendee.response;
+      return total + (response === "SI" ? 1 : 0);
+    }, 0);
+    if (!group.length && state.mainResponse === "SI") confirmedCount = 1;
+    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64) };
+  }
+
+  function reliableConstellation(serverModel, attendeeResponses) {
+    const localModel = currentGroupConstellation(attendeeResponses);
+    const serverCount = Number(serverModel?.confirmedCount);
+    if (Number.isFinite(serverCount) && serverCount >= localModel.confirmedCount) {
+      return {
+        confirmedCount: serverCount,
+        visibleStars: Math.min(Number(serverModel?.visibleStars || serverCount), 64)
+      };
+    }
+    return localModel;
+  }
+
   function renderConstellation(model) {
     const confirmedCount = Number(model?.confirmedCount || 0);
     const visibleStars = Math.min(Number(model?.visibleStars || confirmedCount), 64);
@@ -313,7 +334,7 @@
       elements.farewellTitle.textContent = "Gracias por responder";
       elements.farewellMessage.textContent = "Registramos que no podrás acompañarnos. Agradecemos mucho que nos hayas avisado. Ya puedes cerrar este enlace.";
     }
-    state.constellation = constellation || state.constellation || { confirmedCount: 0, visibleStars: 0 };
+    state.constellation = reliableConstellation(constellation);
     revealTable(attending);
     renderConstellation(state.constellation);
     showScreen("screen-farewell");
@@ -432,7 +453,11 @@
         attendees
       });
       state.invitation.tableName = result.tableName || "";
-      showFarewell(true, result.constellation);
+      state.invitation.attendees = state.invitation.attendees.map((attendee) => {
+        const saved = attendees.find((item) => String(item.id) === String(attendee.id));
+        return saved ? { ...attendee, response: saved.response } : attendee;
+      });
+      showFarewell(true, reliableConstellation(result.constellation, attendees));
     } catch (error) {
       elements.attendeesError.textContent = error.message;
     } finally {

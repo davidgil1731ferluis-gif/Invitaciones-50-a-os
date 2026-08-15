@@ -491,7 +491,7 @@ form label:not(.attendance-options label) {
   width: min(650px, 100%);
   margin: 0 auto 22px;
   display: grid;
-  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr);
+  grid-template-columns: minmax(270px, 282px) minmax(0, 1fr);
   align-items: center;
   gap: clamp(24px, 4vw, 38px);
   text-align: left;
@@ -499,10 +499,10 @@ form label:not(.attendance-options label) {
 .hero-copy { min-width: 0; }
 .hero-overline { display: block; margin-bottom: 10px; color: #9d7a37; font-size: .69rem; font-weight: 850; letter-spacing: .19em; text-transform: uppercase; }
 .celebration-title { min-width: 0; margin: 0; color: #4a346f; font-family: Georgia, serif; line-height: .94; }
-.celebration-word { display: block; font-size: clamp(2.25rem, 5.8vw, 4rem); font-style: italic; font-weight: 500; letter-spacing: -.045em; }
-.celebration-connector { display: block; margin: .12em 0 .08em .12em; color: #9b7837; font-size: clamp(1rem, 2.3vw, 1.35rem); font-style: italic; font-weight: 500; letter-spacing: .08em; }
-.celebration-name { display: block; max-width: 100%; color: #4a346f; font-size: clamp(1.75rem, 4.25vw, 3.15rem); font-style: italic; font-weight: 500; line-height: 1.02; letter-spacing: -.035em; overflow-wrap: anywhere; text-wrap: balance; }
+.celebration-word { display: block; color: #8d6a2d; font-size: clamp(1.35rem, 3vw, 2rem); font-style: italic; font-weight: 500; letter-spacing: .015em; }
+.celebration-name { display: block; max-width: 100%; margin-top: .12em; color: #4a346f; font-size: clamp(2.05rem, 4.7vw, 3.25rem); font-style: italic; font-weight: 500; line-height: 1; letter-spacing: -.035em; overflow-wrap: anywhere; text-wrap: balance; }
 .celebration-title [hidden] { display: none; }
+.milestone-note { max-width: 29ch; margin: 13px 0 0; color: #72687f; font-family: Georgia, serif; font-size: .91rem; font-style: italic; line-height: 1.55; text-wrap: balance; }
 .title-flourish { width: min(210px, 88%); margin-top: 15px; display: flex; align-items: center; gap: 9px; color: #c49a48; }
 .title-flourish i { flex: 1; height: 1px; background: linear-gradient(90deg, #c39b4b, transparent); }
 .title-flourish i:last-child { background: linear-gradient(90deg, transparent, #c39b4b); }
@@ -527,30 +527,46 @@ form label:not(.attendance-options label) {
 .salutation-prefix { color: #8e7444; font-size: .82em; font-style: italic; }
 .invitation-message { max-width: 46ch; margin: 14px auto 24px; color: #665e74; line-height: 1.7; text-wrap: balance; }
 
-.honoree-window {
+.honoree-portrait {
   position: relative;
-  width: 250px;
+  width: 276px;
   aspect-ratio: 1;
   margin: 0 auto;
   isolation: isolate;
 }
-.window-photo {
+.portrait-aura {
   position: absolute;
-  inset: 19% 17% 17%;
-  z-index: 1;
-  padding: 4px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 247, 222, .92);
-  border-radius: 48% 48% 34% 34% / 34% 34% 22% 22%;
-  background: linear-gradient(145deg, #f6e3ae, #8f6728);
-  box-shadow: 0 16px 34px rgba(55, 37, 78, .24), inset 0 0 0 2px rgba(255,255,255,.42);
+  inset: 2%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(237,205,126,.52), rgba(118,80,154,.12) 55%, transparent 72%);
+  filter: blur(12px);
+  animation: portraitAura 3.8s ease-in-out infinite alternate;
 }
-.window-photo img { width: 100%; height: 100%; border-radius: inherit; display: block; object-fit: cover; object-position: center 24%; filter: contrast(1.03); }
-.window-ornament { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 10px 16px rgba(77, 52, 112, .17)); }
-.window-glow { position: absolute; inset: 11% 10% 7%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(236, 202, 122, .46), transparent 68%); filter: blur(11px); animation: windowGlow 3.4s ease-in-out infinite alternate; }
-.window-spark { position: absolute; z-index: 3; color: #e2bd68; filter: drop-shadow(0 0 6px rgba(226,189,104,.62)); animation: windowSpark 2.7s ease-in-out infinite; }
-.window-spark-one { top: 16%; right: 11%; font-size: .78rem; }
-.window-spark-two { left: 8%; bottom: 23%; color: #8a65ae; font-size: .92rem; animation-delay: -1.2s; }
+.portrait-photo {
+  position: absolute;
+  inset: 9%;
+  z-index: 1;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255,248,226,.92);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f8e7b6, #a4772f 48%, #78519b);
+  box-shadow: 0 18px 42px rgba(55,37,78,.28), inset 0 0 0 2px rgba(255,255,255,.46);
+}
+.portrait-photo img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; object-position: center 24%; filter: contrast(1.04) brightness(1.02); }
+.portrait-photo::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; box-shadow: inset 0 -24px 35px rgba(18,10,36,.2), inset 0 0 0 1px rgba(255,255,255,.28); pointer-events: none; }
+.portrait-ring { position: absolute; inset: 6.5%; z-index: 2; border: 1px solid rgba(226,190,104,.75); border-radius: 50%; box-shadow: 0 0 15px rgba(221,185,99,.23); pointer-events: none; }
+.portrait-orbit { position: absolute; z-index: 0; border-radius: 50%; pointer-events: none; }
+.portrait-orbit::before, .portrait-orbit::after { content: "✦"; position: absolute; color: #e6c46f; font-size: .72rem; filter: drop-shadow(0 0 6px rgba(230,196,111,.7)); }
+.portrait-orbit::before { top: -6px; left: 50%; }
+.portrait-orbit::after { right: -5px; top: 54%; color: #9b78bd; }
+.portrait-orbit-one { inset: 1%; border: 1px dashed rgba(194,151,67,.63); animation: portraitOrbit 18s linear infinite; }
+.portrait-orbit-two { inset: 4.5%; border: 1px solid rgba(115,78,157,.22); animation: portraitOrbitReverse 23s linear infinite; }
+.portrait-spark { position: absolute; z-index: 3; color: #e3bd61; filter: drop-shadow(0 0 7px rgba(227,189,97,.72)); animation: portraitSpark 2.8s ease-in-out infinite; }
+.portrait-spark-one { top: 9%; right: 13%; font-size: .85rem; }
+.portrait-spark-two { left: 1%; bottom: 29%; color: #9673b7; font-size: 1rem; animation-delay: -.9s; }
+.portrait-spark-three { right: 4%; bottom: 17%; font-size: .65rem; animation-delay: -1.7s; }
 
 .magic-divider { width: min(250px, 70%); margin: 15px auto; display: flex; align-items: center; gap: 14px; color: var(--gold); }
 .magic-divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c8a252); }
@@ -787,8 +803,10 @@ form label:not(.attendance-options label) {
 @keyframes cardShimmer { 0% { left: -42%; opacity: 0; } 20% { opacity: .62; } 100% { left: 125%; opacity: 0; } }
 @keyframes constellationGlow { from { opacity: .28; transform: scale(.8) rotate(-8deg); } to { opacity: .85; transform: scale(1.18) rotate(8deg); } }
 @keyframes orbitSpin { to { transform: rotate(360deg); } }
-@keyframes windowGlow { from { opacity: .52; transform: scale(.94); } to { opacity: 1; transform: scale(1.05); } }
-@keyframes windowSpark { 0%, 100% { opacity: .35; transform: translateY(2px) scale(.8) rotate(-8deg); } 50% { opacity: 1; transform: translateY(-3px) scale(1.2) rotate(8deg); } }
+@keyframes portraitAura { from { opacity: .52; transform: scale(.93); } to { opacity: 1; transform: scale(1.07); } }
+@keyframes portraitOrbit { to { transform: rotate(360deg); } }
+@keyframes portraitOrbitReverse { to { transform: rotate(-360deg); } }
+@keyframes portraitSpark { 0%, 100% { opacity: .34; transform: translateY(2px) scale(.78) rotate(-10deg); } 50% { opacity: 1; transform: translateY(-4px) scale(1.24) rotate(9deg); } }
 @keyframes dividerStar { 0%, 100% { opacity: .65; transform: scale(.86) rotate(0); } 50% { opacity: 1; transform: scale(1.25) rotate(18deg); text-shadow: 0 0 12px rgba(213,181,111,.7); } }
 @keyframes buttonGleam { 0%, 65% { transform: translateX(-140%); } 90%, 100% { transform: translateX(140%); } }
 @keyframes cursorSpark {
@@ -822,11 +840,12 @@ form label:not(.attendance-options label) {
   .glass-card { padding: 31px 22px; border-radius: 23px; }
   .invitation-card { min-height: auto; padding: 48px 27px 44px; border-radius: 20px 20px 8px 8px; box-shadow: 0 25px 68px rgba(4, 2, 16, .4); }
   .invitation-hero { width: min(520px, 100%); grid-template-columns: 1fr; gap: 8px; text-align: center; }
-  .honoree-window { width: min(230px, 74vw); }
+  .honoree-portrait { width: min(244px, 76vw); }
   .hero-copy { width: min(430px, 100%); margin: 0 auto; }
   .hero-overline { font-size: .62rem; }
-  .celebration-word { font-size: clamp(2.5rem, 11vw, 3.75rem); }
-  .celebration-name { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .celebration-word { font-size: clamp(1.35rem, 6vw, 1.8rem); }
+  .celebration-name { font-size: clamp(2.05rem, 9vw, 2.85rem); }
+  .milestone-note { margin-inline: auto; }
   .title-flourish { margin-inline: auto; }
   .guest-line { padding: 9px 15px; font-size: 1rem; }
   .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -866,9 +885,9 @@ form label:not(.attendance-options label) {
   .invitation-kicker { font-size: .63rem; letter-spacing: .18em; }
   .magic-divider { margin-block: 12px; }
   .invitation-hero { width: 100%; grid-template-columns: 1fr; gap: 5px; margin-bottom: 18px; }
-  .honoree-window { width: min(205px, 70vw); }
-  .celebration-word { font-size: clamp(2.25rem, 12vw, 3.2rem); }
-  .celebration-name { font-size: clamp(1.82rem, 9.5vw, 2.65rem); }
+  .honoree-portrait { width: min(222px, 72vw); }
+  .celebration-word { font-size: clamp(1.25rem, 6vw, 1.55rem); }
+  .celebration-name { font-size: clamp(1.95rem, 10vw, 2.55rem); }
   .hero-overline { letter-spacing: .12em; }
   .guest-line { width: 100%; border-radius: 14px; font-size: .94rem; }
   .invitation-message { margin-bottom: 18px; font-size: .92rem; }
@@ -885,7 +904,7 @@ form label:not(.attendance-options label) {
   .button-glow, .reveal-piece, .corner { opacity: 1; transform: none; }
   .frame-top, .frame-bottom { transform: scaleX(1); }
   .frame-left, .frame-right { transform: scaleY(1); }
-  .assemble, .window-glow, .window-spark, .magic-divider b, .invitation-card .button-primary::after, .table-reveal, .constellation-star, .constellation-lines { animation: none !important; }
+  .assemble, .portrait-aura, .portrait-orbit, .portrait-spark, .magic-divider b, .invitation-card .button-primary::after, .table-reveal, .constellation-star, .constellation-lines { animation: none !important; }
   .table-reveal, .constellation-star, .constellation-lines { opacity: 1 !important; transform: none !important; }
   .cursor-stardust { display: none; }
 }

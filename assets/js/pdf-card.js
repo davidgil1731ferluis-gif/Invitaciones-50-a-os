@@ -76,59 +76,79 @@
     ctx.restore();
   }
 
-  function drawOrnamentalWindow(ctx, image, centerX, top) {
-    const width = 292;
-    const height = 322;
-    const gradient = ctx.createLinearGradient(centerX - width / 2, top, centerX + width / 2, top + height);
-    gradient.addColorStop(0, "#f1d78f");
-    gradient.addColorStop(.38, "#9c722b");
-    gradient.addColorStop(.72, "#dec174");
-    gradient.addColorStop(1, "#76529a");
+  function drawCircularPortrait(ctx, image, centerX, centerY) {
+    const photoRadius = 156;
+    const frameGradient = ctx.createLinearGradient(centerX - 180, centerY - 180, centerX + 180, centerY + 180);
+    frameGradient.addColorStop(0, "#f3d993");
+    frameGradient.addColorStop(.38, "#a8792d");
+    frameGradient.addColorStop(.7, "#e7c879");
+    frameGradient.addColorStop(1, "#76519a");
 
     ctx.save();
-    ctx.shadowColor = "rgba(82, 56, 115, .24)";
-    ctx.shadowBlur = 30;
-    windowPath(ctx, centerX, top, width, height);
-    ctx.fillStyle = "#f6ead0";
+    ctx.shadowColor = "rgba(93,60,132,.3)";
+    ctx.shadowBlur = 42;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, photoRadius + 12, 0, Math.PI * 2);
+    ctx.fillStyle = "#f8ebc8";
     ctx.fill();
     ctx.restore();
 
     ctx.save();
-    windowPath(ctx, centerX, top + 9, width - 22, height - 29);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, photoRadius, 0, Math.PI * 2);
     ctx.clip();
-    drawImageCover(ctx, image, centerX - (width - 22) / 2, top + 9, width - 22, height + 20);
-    const shade = ctx.createLinearGradient(0, top, 0, top + height);
-    shade.addColorStop(0, "rgba(21, 13, 38, 0)");
-    shade.addColorStop(.82, "rgba(24, 15, 41, .06)");
-    shade.addColorStop(1, "rgba(24, 15, 41, .34)");
+    drawImageCover(ctx, image, centerX - photoRadius, centerY - photoRadius, photoRadius * 2, photoRadius * 2);
+    const shade = ctx.createLinearGradient(0, centerY - photoRadius, 0, centerY + photoRadius);
+    shade.addColorStop(0, "rgba(17,10,35,0)");
+    shade.addColorStop(.68, "rgba(17,10,35,.02)");
+    shade.addColorStop(1, "rgba(17,10,35,.28)");
     ctx.fillStyle = shade;
-    ctx.fillRect(centerX - width / 2, top, width, height + 30);
+    ctx.fillRect(centerX - photoRadius, centerY - photoRadius, photoRadius * 2, photoRadius * 2);
     ctx.restore();
 
     ctx.save();
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = 8;
-    windowPath(ctx, centerX, top, width, height);
-    ctx.stroke();
-    ctx.lineWidth = 2.5;
-    windowPath(ctx, centerX, top + 13, width - 30, height - 38);
-    ctx.stroke();
-
-    ctx.lineWidth = 3;
-    drawLeaf(ctx, centerX - 122, top + 45, -2.55, 1.15);
-    drawLeaf(ctx, centerX + 122, top + 45, -.58, 1.15);
-    drawLeaf(ctx, centerX - 134, top + 214, 2.72, 1.05);
-    drawLeaf(ctx, centerX + 134, top + 214, .42, 1.05);
-    drawLeaf(ctx, centerX - 44, top - 3, -1.55, .9);
-    drawLeaf(ctx, centerX + 44, top - 3, -1.6, .9);
-
+    ctx.strokeStyle = frameGradient;
+    ctx.lineWidth = 10;
     ctx.beginPath();
-    ctx.moveTo(centerX, top - 35);
-    ctx.lineTo(centerX + 13, top - 13);
-    ctx.lineTo(centerX, top + 8);
-    ctx.lineTo(centerX - 13, top - 13);
-    ctx.closePath();
+    ctx.arc(centerX, centerY, photoRadius + 5, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, photoRadius - 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([8, 12]);
+    ctx.strokeStyle = "rgba(167,124,47,.62)";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, photoRadius + 28, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    drawStar(ctx, centerX - 132, centerY - 133, 11, "#e8c773");
+    drawStar(ctx, centerX + 163, centerY - 55, 8, "#76519a");
+    drawStar(ctx, centerX - 170, centerY + 54, 7, "#caa554");
+    drawStar(ctx, centerX + 118, centerY + 127, 10, "#e8c773");
+
+    const sealX = centerX + 133;
+    const sealY = centerY + 126;
+    ctx.save();
+    ctx.shadowColor = "rgba(52,34,85,.35)";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, 49, 0, Math.PI * 2);
+    ctx.fillStyle = "#4d3478";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#e6c470";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#f8e7b5";
+    ctx.font = "italic 700 35px Georgia, serif";
+    ctx.fillText("50", sealX, sealY + 5);
+    ctx.font = "700 11px Arial, sans-serif";
+    ctx.fillText("AÑOS", sealX, sealY + 26);
     ctx.restore();
   }
 
@@ -268,48 +288,57 @@
     drawStar(ctx, 1129, 1650, 11, "#b38a3d");
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#76529a";
-    ctx.font = "700 22px Arial, sans-serif";
-    ctx.fillText("UNA INVITACIÓN MÁGICA", PAGE_WIDTH / 2, 155);
+    ctx.fillStyle = "#8f6d31";
+    ctx.font = "700 20px Arial, sans-serif";
+    ctx.fillText("UNA NOCHE ESCRITA EN LAS ESTRELLAS", PAGE_WIDTH / 2, 151);
     drawDivider(ctx, 188);
 
     ctx.fillStyle = "#4d3478";
-    ctx.font = "italic 700 67px Georgia, serif";
-    centeredText(ctx, event.title || "Mi cumpleaños", PAGE_WIDTH / 2, 255, 850, 72, 2);
+    ctx.font = "italic 500 59px Georgia, serif";
+    centeredText(ctx, event.title || "Celebrando mis 50 años", PAGE_WIDTH / 2, 260, 850, 66, 2);
 
-    drawOrnamentalWindow(ctx, portrait, PAGE_WIDTH / 2, 380);
+    drawCircularPortrait(ctx, portrait, PAGE_WIDTH / 2, 500);
 
     const greeting = ["Sr/a", invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
+    roundedRect(ctx, 145, 710, 950, 158, 38);
+    ctx.fillStyle = "rgba(109,76,157,.055)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(173,132,56,.25)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#9b7837";
+    ctx.font = "700 17px Arial, sans-serif";
+    ctx.fillText("ESTA INVITACIÓN FUE CREADA ESPECIALMENTE PARA", PAGE_WIDTH / 2, 754);
     ctx.fillStyle = "#4d3478";
-    ctx.font = "700 43px Georgia, serif";
-    centeredText(ctx, greeting, PAGE_WIDTH / 2, 770, 880, 51, 2);
+    ctx.font = "italic 700 39px Georgia, serif";
+    centeredText(ctx, greeting, PAGE_WIDTH / 2, 812, 850, 46, 2);
 
     ctx.fillStyle = "#665e74";
-    ctx.font = "31px Georgia, serif";
-    centeredText(ctx, event.message || "La compañía de ustedes hará que esta celebración sea aún más inolvidable.", PAGE_WIDTH / 2, 885, 790, 43, 3);
+    ctx.font = "italic 28px Georgia, serif";
+    centeredText(ctx, event.message || "La compañía de ustedes hará que esta celebración sea aún más inolvidable.", PAGE_WIDTH / 2, 930, 790, 40, 2);
 
     drawDivider(ctx, 1030);
-    drawDetailBox(ctx, 150, 1080, 445, "Fecha y hora", event.date || "Fecha por confirmar", event.time || "Hora por confirmar");
-    drawDetailBox(ctx, 645, 1080, 445, "Lugar", event.place || "Lugar por confirmar", event.address || "Dirección por confirmar");
+    drawDetailBox(ctx, 150, 1070, 445, "Fecha y hora", event.date || "Fecha por confirmar", event.time || "Hora por confirmar");
+    drawDetailBox(ctx, 645, 1070, 445, "Lugar", event.place || "Lugar por confirmar", event.address || "Dirección por confirmar");
 
     const badges = [];
     if (event.dressCode) badges.push(`Código de vestuario: ${event.dressCode}`);
     if (invitation.tableName) badges.push(`Mesa asignada: ${invitation.tableName}`);
-    if (badges.length === 1) drawBadge(ctx, 350, 1270, 540, badges[0]);
+    if (badges.length === 1) drawBadge(ctx, 350, 1250, 540, badges[0]);
     if (badges.length >= 2) {
-      drawBadge(ctx, 145, 1270, 455, badges[0]);
-      drawBadge(ctx, 640, 1270, 455, badges[1]);
+      drawBadge(ctx, 145, 1250, 455, badges[0]);
+      drawBadge(ctx, 640, 1250, 455, badges[1]);
     }
 
     ctx.fillStyle = "#9b7837";
     ctx.font = "700 21px Arial, sans-serif";
-    ctx.fillText("CONSERVA ESTA INVITACIÓN COMO RECUERDO", PAGE_WIDTH / 2, 1435);
+    ctx.fillText("MEDIO SIGLO DE HISTORIAS · UNA NOCHE PARA RECORDAR", PAGE_WIDTH / 2, 1415);
     ctx.fillStyle = "#776f82";
     ctx.font = "24px Georgia, serif";
-    ctx.fillText("Será maravilloso celebrar juntos", PAGE_WIDTH / 2, 1485);
-    drawStar(ctx, PAGE_WIDTH / 2 - 43, 1545, 10, "#d1ae60");
-    drawStar(ctx, PAGE_WIDTH / 2, 1545, 15, "#76529a");
-    drawStar(ctx, PAGE_WIDTH / 2 + 43, 1545, 10, "#d1ae60");
+    ctx.fillText("Tu compañía hará que esta celebración brille aún más", PAGE_WIDTH / 2, 1468);
+    drawStar(ctx, PAGE_WIDTH / 2 - 43, 1530, 10, "#d1ae60");
+    drawStar(ctx, PAGE_WIDTH / 2, 1530, 15, "#76529a");
+    drawStar(ctx, PAGE_WIDTH / 2 + 43, 1530, 10, "#d1ae60");
 
     return canvas;
   }
