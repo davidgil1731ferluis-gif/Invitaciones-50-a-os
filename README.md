@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2.5
+# Invitaciones mágicas de cumpleaños · versión 2.6
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -19,10 +19,37 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Revelación animada de la mesa únicamente después de guardar la confirmación.
 - Descarga de evento para calendario y acceso directo a la ubicación.
 - Mesa asignada incluida automáticamente en el PDF.
+- Módulo gratuito de WhatsApp en el panel administrativo.
+- Mensaje personalizado con enlace, clave secreta y nombre del invitado.
+- Imagen promocional optimizada para descargar o compartir desde el teléfono.
+- Apertura directa del chat del destinatario con el texto ya diligenciado.
+
+## Envío gratuito por WhatsApp
+
+En la tabla del panel aparece un botón **WhatsApp** para cada invitación que tenga teléfono. Al pulsarlo:
+
+1. Se completa automáticamente el destinatario, el enlace público y la clave secreta.
+2. En un teléfono compatible, **Compartir imagen y mensaje** abre el menú de compartir del dispositivo con ambos elementos.
+3. **Abrir chat en WhatsApp** abre directamente la conversación con el texto preparado.
+4. Si el navegador no permite compartir archivos, usa **Descargar imagen** y adjúntala al chat después de abrirlo.
+
+El remitente siempre es la cuenta de WhatsApp que esté abierta en el teléfono o computador. Elegir otra cuenta remitente o enviar sin intervención requiere WhatsApp Business Cloud API y no pertenece al modo gratuito.
+
+Desde **Configurar mensaje** puedes cambiar el prefijo del país, el enlace público y la plantilla. La configuración se guarda únicamente en ese dispositivo. La plantilla admite:
+
+- `{{LINK}}`: enlace de la página.
+- `{{CLAVE}}`: código secreto de la invitación.
+- `{{NOMBRE}}`: nombre del invitado principal.
+
+La imagen se encuentra en:
+
+```text
+assets/images/invitacion-whatsapp.jpg
+```
 
 ## Si ya instalaste una versión anterior
 
-Para actualizar a la versión 2.5, reemplaza todos los archivos de GitHub. No se agregan columnas a Sheets. Para garantizar que la constelación muestre el total global de todas las invitaciones, también copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web.
+Para actualizar a la versión 2.6, reemplaza todos los archivos de GitHub. No se agregan columnas a Sheets. Para garantizar que la constelación muestre el total global de todas las invitaciones, también copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web.
 
 ## Cómo funciona la constelación
 
@@ -60,6 +87,7 @@ La foto utilizada por la tarjeta está en:
 
 ```text
 assets/images/retrato-cumpleanos.webp
+assets/images/invitacion-whatsapp.jpg
 ```
 
 ### 2. Actualizar Apps Script

@@ -55,6 +55,41 @@
         <article class="metric metric-pending"><span>Sin responder</span><strong id="metric-pending">0</strong></article>
       </div>
 
+      <section class="admin-panel whatsapp-panel" aria-labelledby="whatsapp-title">
+        <div class="whatsapp-intro">
+          <div class="whatsapp-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">Envío gratuito</p>
+            <h2 id="whatsapp-title">Invitaciones por WhatsApp</h2>
+            <p>Prepara el mensaje, la clave y la imagen para cada invitado. El envío saldrá desde la cuenta de WhatsApp abierta en este dispositivo.</p>
+          </div>
+          <button id="toggle-whatsapp-settings" class="button button-secondary" type="button" aria-expanded="false" aria-controls="whatsapp-settings">Configurar mensaje</button>
+        </div>
+        <form id="whatsapp-settings" class="whatsapp-settings" hidden>
+          <div class="whatsapp-settings-grid">
+            <div class="field">
+              <label for="whatsapp-country">Prefijo del país</label>
+              <div class="phone-prefix"><span>+</span><input id="whatsapp-country" name="countryCode" type="text" inputmode="numeric" maxlength="4" required></div>
+              <p class="field-help">Colombia: 57. No escribas el signo +.</p>
+            </div>
+            <div class="field field-grow">
+              <label for="whatsapp-page-url">Enlace público de la invitación</label>
+              <input id="whatsapp-page-url" name="publicUrl" type="url" required>
+            </div>
+            <div class="field field-wide">
+              <label for="whatsapp-message">Plantilla del mensaje</label>
+              <textarea id="whatsapp-message" name="messageTemplate" rows="11" required></textarea>
+              <p class="field-help">Conserva <code>{{LINK}}</code> y <code>{{CLAVE}}</code>. También puedes usar <code>{{NOMBRE}}</code>.</p>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="button button-primary" type="submit">Guardar configuración</button>
+            <button id="reset-whatsapp-settings" class="button button-secondary" type="button">Restaurar mensaje original</button>
+          </div>
+          <p id="whatsapp-settings-status" class="settings-status" role="status"></p>
+        </form>
+      </section>
+
       <div class="admin-grid">
         <section class="admin-panel create-panel" aria-labelledby="create-title">
           <div class="panel-heading">
@@ -136,6 +171,34 @@
       </div>
     </section>
   </main>
+
+  <dialog id="whatsapp-dialog" class="whatsapp-dialog" aria-labelledby="whatsapp-dialog-title">
+    <button id="close-whatsapp-dialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+    <div class="whatsapp-dialog-layout">
+      <figure class="whatsapp-image-card">
+        <img id="whatsapp-preview-image" src="assets/images/invitacion-whatsapp.jpg" alt="Imagen que acompaña el mensaje de invitación">
+        <figcaption>Imagen para compartir</figcaption>
+      </figure>
+      <div class="whatsapp-compose">
+        <p class="eyebrow">Mensaje personalizado</p>
+        <h2 id="whatsapp-dialog-title">Enviar invitación</h2>
+        <p id="whatsapp-recipient-name" class="recipient-name"></p>
+        <label for="whatsapp-recipient-phone">Número del destinatario</label>
+        <input id="whatsapp-recipient-phone" type="tel" inputmode="tel" autocomplete="tel">
+        <p id="whatsapp-phone-help" class="field-help"></p>
+        <label for="whatsapp-message-preview">Mensaje</label>
+        <textarea id="whatsapp-message-preview" rows="13"></textarea>
+        <p id="whatsapp-dialog-error" class="field-error" role="alert"></p>
+        <div class="whatsapp-actions">
+          <button id="share-whatsapp-package" class="button button-primary whatsapp-share" type="button">Compartir imagen y mensaje</button>
+          <button id="open-whatsapp-chat" class="button button-whatsapp" type="button">Abrir chat en WhatsApp</button>
+          <a id="download-whatsapp-image" class="button button-secondary" href="assets/images/invitacion-whatsapp.jpg" download="invitacion-50-anos.jpg">Descargar imagen</a>
+          <button id="copy-whatsapp-message" class="button button-secondary" type="button">Copiar mensaje</button>
+        </div>
+        <p class="whatsapp-note"><strong>Importante:</strong> si “Compartir imagen y mensaje” no aparece en tu dispositivo, descarga la imagen, abre el chat y adjúntala manualmente. El botón verde siempre deja el texto listo.</p>
+      </div>
+    </div>
+  </dialog>
 
   <iframe id="api-bridge" class="api-bridge" title="Conexión segura" hidden></iframe>
   <div id="admin-live-region" class="sr-only" aria-live="polite"></div>

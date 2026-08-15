@@ -23,5 +23,31 @@ window.INVITATION_CONFIG = Object.freeze({
   animation: {
     introDurationMs: 3900,
     reducedMotionDurationMs: 250
+  },
+
+  whatsapp: {
+    // Estos valores se pueden ajustar también desde el panel administrador.
+    publicUrl: "https://davidgil1731ferluis-gif.github.io/Invitaciones-50-a-os/",
+    imageUrl: "assets/images/invitacion-whatsapp.jpg",
+    defaultCountryCode: "57",
+    messageTemplate: `✨🌙 *¡Tenemos algo muy especial para ti!* 🌙✨
+
+Con mucha alegría queremos compartirte el enlace de tu *tarjeta de invitación*. Hemos preparado esta experiencia con mucho cariño para que desde el primer momento puedas disfrutar de un pequeño toque de magia. 💌⭐
+
+🔗 *Link de la tarjeta:*
+{{LINK}}
+
+Para ingresar necesitarás una *clave secreta*, que encontrarás a continuación. 🔐✨
+
+🌟 *Tu clave secreta es:*
+*{{CLAVE}}*
+
+Te recomendamos guardar esta información y escribir la clave exactamente como aparece para poder acceder sin inconvenientes.
+
+Esperamos que disfrutes cada detalle de esta invitación y que te dejes sorprender por la experiencia que hemos preparado para ti. ✨💜
+
+*Nos encantará contar contigo para celebrar este momento tan especial.* 🥂🌙⭐
+
+Con cariño,`
   }
 });

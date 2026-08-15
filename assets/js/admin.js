@@ -3,7 +3,9 @@
   const state = {
     token: sessionStorage.getItem("birthday-admin-token") || null,
     dashboard: null,
-    dashboardPromise: null
+    dashboardPromise: null,
+    whatsappInvitation: null,
+    shareImageFile: null
   };
   const loginSection = document.getElementById("admin-login");
   const dashboard = document.getElementById("admin-dashboard");
@@ -14,6 +16,9 @@
   const customSalutationField = document.getElementById("custom-salutation-field");
   const customSalutation = document.getElementById("custom-salutation");
   const liveRegion = document.getElementById("admin-live-region");
+  const whatsappDialog = document.getElementById("whatsapp-dialog");
+  const whatsappSettingsForm = document.getElementById("whatsapp-settings");
+  const whatsappStorageKey = "birthday-whatsapp-settings-v1";
   const predefinedSalutations = [...salutationSelect.options]
     .map((option) => option.value)
     .filter((value) => value && value !== "__otro__");
@@ -59,6 +64,52 @@
     })[character]);
   }
 
+  function defaultWhatsappSettings() {
+    const settings = config.whatsapp || {};
+    return {
+      countryCode: String(settings.defaultCountryCode || "57").replace(/\D/g, ""),
+      publicUrl: String(settings.publicUrl || new URL("./", window.location.href).href).trim(),
+      messageTemplate: String(settings.messageTemplate || "{{LINK}}\n\nClave: {{CLAVE}}")
+    };
+  }
+
+  function getWhatsappSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(whatsappStorageKey));
+      return { ...defaultWhatsappSettings(), ...(saved || {}) };
+    } catch (_) {
+      return defaultWhatsappSettings();
+    }
+  }
+
+  function fillWhatsappSettingsForm(settings = getWhatsappSettings()) {
+    whatsappSettingsForm.countryCode.value = settings.countryCode;
+    whatsappSettingsForm.publicUrl.value = settings.publicUrl;
+    whatsappSettingsForm.messageTemplate.value = settings.messageTemplate;
+  }
+
+  function renderWhatsappMessage(item) {
+    const settings = getWhatsappSettings();
+    return settings.messageTemplate
+      .replace(/{{\s*LINK\s*}}/gi, settings.publicUrl)
+      .replace(/{{\s*CLAVE\s*}}/gi, item.code || "")
+      .replace(/{{\s*NOMBRE\s*}}/gi, item.primaryName || "");
+  }
+
+  function normalizeWhatsappPhone(rawPhone) {
+    const settings = getWhatsappSettings();
+    let digits = String(rawPhone || "").replace(/\D/g, "");
+    const country = String(settings.countryCode || "").replace(/\D/g, "");
+    if (digits.startsWith("00")) digits = digits.slice(2);
+    if (country === "57" && /^3\d{9}$/.test(digits)) digits = `57${digits}`;
+    else if (country && digits && !digits.startsWith(country) && digits.length <= 10) digits = `${country}${digits}`;
+    return digits;
+  }
+
+  function whatsappUrl(phone, message) {
+    return `https://wa.me/${normalizeWhatsappPhone(phone)}?text=${encodeURIComponent(message)}`;
+  }
+
   function attendeeMarkup(attendee) {
     const status = String(attendee.response || "PENDIENTE").toLowerCase();
     const principal = attendee.type === "PRINCIPAL" ? " · principal" : "";
@@ -73,6 +124,7 @@
         <td>
           <details class="guest-details">
             <summary><span>${escapeHtml(item.primaryName)}</span>${treatment}</summary>
+            ${item.phone ? `<small class="guest-phone">${escapeHtml(item.phone)}</small>` : '<small class="guest-phone muted">Sin teléfono</small>'}
             <ul>${(item.attendees || []).map(attendeeMarkup).join("")}</ul>
           </details>
         </td>
@@ -83,6 +135,7 @@
         <td>${formatDate(item.respondedAt)}</td>
         <td>
           <div class="row-actions">
+            <button class="icon-button icon-button-whatsapp" type="button" data-action="whatsapp" data-id="${escapeHtml(item.id)}" ${item.phone ? "" : "disabled"} title="${item.phone ? "Preparar envío por WhatsApp" : "Agrega un teléfono para enviar"}">WhatsApp</button>
             <button class="icon-button" type="button" data-action="copy" data-id="${escapeHtml(item.id)}" title="Copiar código">Copiar</button>
             <button class="icon-button" type="button" data-action="edit" data-id="${escapeHtml(item.id)}">Editar</button>
             <button class="icon-button icon-button-danger" type="button" data-action="delete" data-id="${escapeHtml(item.id)}">Eliminar</button>
@@ -197,10 +250,79 @@
     }
   }
 
+  async function getShareImageFile() {
+    if (state.shareImageFile) return state.shareImageFile;
+    const imageUrl = config.whatsapp?.imageUrl || "assets/images/invitacion-whatsapp.jpg";
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error("No fue posible cargar la imagen de la invitación.");
+    const blob = await response.blob();
+    state.shareImageFile = new File([blob], "invitacion-50-anos.jpg", { type: blob.type || "image/jpeg" });
+    return state.shareImageFile;
+  }
+
+  function openWhatsappDialog(item) {
+    state.whatsappInvitation = item;
+    document.getElementById("whatsapp-recipient-name").textContent = `${item.primaryName} · clave ${item.code}`;
+    document.getElementById("whatsapp-recipient-phone").value = item.phone || "";
+    document.getElementById("whatsapp-message-preview").value = renderWhatsappMessage(item);
+    document.getElementById("whatsapp-phone-help").textContent = `Se enviará a +${normalizeWhatsappPhone(item.phone)}. Puedes corregirlo antes de abrir el chat.`;
+    document.getElementById("whatsapp-dialog-error").textContent = "";
+    const shareButton = document.getElementById("share-whatsapp-package");
+    shareButton.hidden = !(navigator.share && navigator.canShare);
+    if (typeof whatsappDialog.showModal === "function") whatsappDialog.showModal();
+    else whatsappDialog.setAttribute("open", "");
+  }
+
+  function closeWhatsappDialog() {
+    if (typeof whatsappDialog.close === "function") whatsappDialog.close();
+    else whatsappDialog.removeAttribute("open");
+    state.whatsappInvitation = null;
+  }
+
+  function currentWhatsappDraft() {
+    const phoneInput = document.getElementById("whatsapp-recipient-phone");
+    const phone = normalizeWhatsappPhone(phoneInput.value);
+    const message = document.getElementById("whatsapp-message-preview").value.trim();
+    if (phone.length < 10) throw new Error("Escribe un número válido con código de país.");
+    if (!message) throw new Error("El mensaje no puede estar vacío.");
+    document.getElementById("whatsapp-phone-help").textContent = `Destino final: +${phone}`;
+    return { phone, message };
+  }
+
   buildStars();
   if (config.apiMode !== "mock") document.querySelectorAll(".demo-only").forEach((element) => { element.hidden = true; });
 
   salutationSelect.addEventListener("change", updateCustomSalutationVisibility);
+  fillWhatsappSettingsForm();
+
+  document.getElementById("toggle-whatsapp-settings").addEventListener("click", (event) => {
+    const opening = whatsappSettingsForm.hidden;
+    whatsappSettingsForm.hidden = !opening;
+    event.currentTarget.setAttribute("aria-expanded", String(opening));
+    event.currentTarget.textContent = opening ? "Ocultar configuración" : "Configurar mensaje";
+  });
+
+  whatsappSettingsForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const settings = {
+      countryCode: whatsappSettingsForm.countryCode.value.replace(/\D/g, ""),
+      publicUrl: whatsappSettingsForm.publicUrl.value.trim(),
+      messageTemplate: whatsappSettingsForm.messageTemplate.value
+    };
+    if (!settings.messageTemplate.includes("{{LINK}}") || !settings.messageTemplate.includes("{{CLAVE}}")) {
+      document.getElementById("whatsapp-settings-status").textContent = "La plantilla debe conservar {{LINK}} y {{CLAVE}}.";
+      return;
+    }
+    localStorage.setItem(whatsappStorageKey, JSON.stringify(settings));
+    document.getElementById("whatsapp-settings-status").textContent = "Configuración guardada en este dispositivo.";
+    announce("Configuración de WhatsApp guardada.");
+  });
+
+  document.getElementById("reset-whatsapp-settings").addEventListener("click", () => {
+    localStorage.removeItem(whatsappStorageKey);
+    fillWhatsappSettingsForm(defaultWhatsappSettings());
+    document.getElementById("whatsapp-settings-status").textContent = "Se restauró el mensaje original.";
+  });
 
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -266,6 +388,10 @@
       startEdit(item.id);
       return;
     }
+    if (button.dataset.action === "whatsapp") {
+      openWhatsappDialog(item);
+      return;
+    }
     if (button.dataset.action === "copy") {
       await copyText(item.code);
       announce(`Código ${item.code} copiado.`);
@@ -291,6 +417,49 @@
     const code = document.getElementById("generated-code-value").textContent;
     await copyText(code);
     announce("Código copiado.");
+  });
+  document.getElementById("close-whatsapp-dialog").addEventListener("click", closeWhatsappDialog);
+  whatsappDialog.addEventListener("click", (event) => {
+    if (event.target === whatsappDialog) closeWhatsappDialog();
+  });
+  document.getElementById("whatsapp-recipient-phone").addEventListener("input", (event) => {
+    const normalized = normalizeWhatsappPhone(event.currentTarget.value);
+    document.getElementById("whatsapp-phone-help").textContent = normalized ? `Destino final: +${normalized}` : "Escribe el número del destinatario.";
+  });
+  document.getElementById("open-whatsapp-chat").addEventListener("click", () => {
+    const error = document.getElementById("whatsapp-dialog-error");
+    error.textContent = "";
+    try {
+      const draft = currentWhatsappDraft();
+      window.open(whatsappUrl(draft.phone, draft.message), "_blank", "noopener,noreferrer");
+      announce(`Chat de ${state.whatsappInvitation?.primaryName || "invitado"} preparado en WhatsApp.`);
+    } catch (requestError) {
+      error.textContent = requestError.message;
+    }
+  });
+  document.getElementById("copy-whatsapp-message").addEventListener("click", async () => {
+    const error = document.getElementById("whatsapp-dialog-error");
+    error.textContent = "";
+    try {
+      const draft = currentWhatsappDraft();
+      await copyText(draft.message);
+      announce("Mensaje de WhatsApp copiado.");
+    } catch (requestError) {
+      error.textContent = requestError.message;
+    }
+  });
+  document.getElementById("share-whatsapp-package").addEventListener("click", async () => {
+    const error = document.getElementById("whatsapp-dialog-error");
+    error.textContent = "";
+    try {
+      const draft = currentWhatsappDraft();
+      const imageFile = await getShareImageFile();
+      if (!navigator.canShare({ files: [imageFile] })) throw new Error("Este navegador no permite compartir archivos. Usa “Descargar imagen” y luego abre WhatsApp.");
+      await navigator.share({ title: "Invitación · Celebrando mis 50 años", text: draft.message, files: [imageFile] });
+      announce("Imagen y mensaje preparados para compartir.");
+    } catch (requestError) {
+      if (requestError.name !== "AbortError") error.textContent = requestError.message;
+    }
   });
   document.getElementById("cancel-edit").addEventListener("click", resetInvitationForm);
   document.getElementById("refresh-dashboard").addEventListener("click", loadDashboard);
