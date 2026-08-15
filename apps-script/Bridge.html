@@ -17,10 +17,10 @@
       google.script.run
         .withSuccessHandler(function (config) {
           allowedOrigins = (config.allowedOrigins || []).map(normalize);
-          window.parent.postMessage({ type: "bridge-ready" }, "*");
+          window.top.postMessage({ type: "bridge-ready" }, "*");
         })
         .withFailureHandler(function () {
-          window.parent.postMessage({ type: "bridge-ready" }, "*");
+          window.top.postMessage({ type: "bridge-ready" }, "*");
         })
         .getPublicConfig();
 

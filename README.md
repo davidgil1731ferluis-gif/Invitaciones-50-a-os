@@ -1,145 +1,135 @@
-# Invitaciones mágicas de cumpleaños
+# Invitaciones mágicas de cumpleaños · versión 2
 
-Proyecto listo para publicar con:
+Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
-- **GitHub Pages:** experiencia pública y panel administrativo.
-- **Google Apps Script:** validación de claves, sesiones administrativas y operaciones seguras.
-- **Google Sheets:** invitados, asistentes, respuestas y registro de accesos.
+- Confirmación individual del invitado principal y cada acompañante.
+- Conteo administrativo de personas que sí asisten, no asisten o siguen pendientes.
+- Asignación de mesa por grupo.
+- Texto personalizable después del nombre: «Esposa e hijos», «Familia», «Acompañante» u otro.
+- Edición y eliminación lógica de invitaciones.
+- Fotografía integrada y optimizada en formato WebP.
+- Caché de lecturas públicas y menos operaciones repetidas contra Sheets.
 
-## 1. Probar la demostración
+## Actualizar el proyecto que ya está funcionando
 
-El proyecto inicia en modo demostración. Desde la carpeta del proyecto ejecuta:
+### 1. Actualizar GitHub
+
+Sube a la raíz del repositorio todo el contenido de esta carpeta, reemplazando los archivos anteriores. No borres las carpetas `assets` ni `apps-script`.
+
+La conexión ya está configurada en `assets/js/config.js` con la URL de Apps Script utilizada en este proyecto. Si en el futuro creas una implementación distinta, sustituye allí la URL terminada en `/exec`.
+
+La foto utilizada por la tarjeta está en:
+
+```text
+assets/images/retrato-cumpleanos.webp
+```
+
+### 2. Actualizar Apps Script
+
+1. En Google Sheets abre **Extensiones → Apps Script**.
+2. Reemplaza el contenido de `Código.gs` por `apps-script/Code.gs`.
+3. Reemplaza el contenido de `Bridge.html` por `apps-script/Bridge.html`.
+4. Guarda los dos archivos.
+5. En el selector de funciones elige `actualizarEstructura` y pulsa **Ejecutar** una sola vez.
+6. Espera el mensaje **Ejecución completada**.
+
+`actualizarEstructura` conserva todos los registros. Solo agrega:
+
+| Hoja | Columnas nuevas |
+|---|---|
+| `INVITACIONES` | `TRATAMIENTO`, `MESA` |
+| `ASISTENTES` | `MESA` |
+
+No vuelvas a ejecutar `configurarProyecto` para esta actualización: tus credenciales y el vínculo con Sheets ya están guardados.
+
+### 3. Publicar una versión nueva de Apps Script
+
+1. Pulsa **Implementar → Administrar implementaciones**.
+2. Abre la implementación web con el icono de lápiz.
+3. En **Versión**, elige **Nueva versión**.
+4. Confirma estas opciones:
+   - **Ejecutar como:** Yo.
+   - **Quién tiene acceso:** Cualquier persona.
+5. Pulsa **Implementar**.
+
+Este último permiso es indispensable para que las claves funcionen en otros teléfonos, en modo incógnito y sin una cuenta de Gmail iniciada. Comparte la URL de GitHub Pages, no la URL `/exec` de Apps Script.
+
+### 4. Comprobar la publicación
+
+Prueba en una ventana de incógnito:
+
+```text
+Invitación: https://davidgil1731ferluis-gif.github.io/Invitaciones-50-a-os/
+Panel:      https://davidgil1731ferluis-gif.github.io/Invitaciones-50-a-os/admin.html
+```
+
+Después de subir los archivos, GitHub Pages puede tardar uno o dos minutos en mostrar el cambio. Si ves la versión anterior, recarga con `Ctrl + F5` o borra la caché del navegador.
+
+## Uso del panel
+
+Al registrar o editar una invitación puedes indicar:
+
+- Nombre del invitado principal.
+- Correo y teléfono opcionales.
+- Texto después del nombre.
+- Mesa asignada.
+- Acompañantes, uno por línea.
+
+El panel muestra dos tipos de totales:
+
+- **Invitaciones:** cantidad de códigos o grupos activos.
+- **Total personas:** principal y acompañantes activos.
+
+Los totales **Sí asistirán**, **No asistirán** y **Sin responder** se calculan sobre las personas. Al desplegar un grupo se ve la respuesta de cada integrante.
+
+Al eliminar una invitación se hace una eliminación lógica: la clave queda desactivada y el grupo deja de aparecer en el panel, pero la fila histórica permanece en Sheets con `ACTIVO = FALSE`.
+
+## Personalizar los datos del evento
+
+Edita `assets/js/config.js` para cambiar:
+
+- Título del cumpleaños.
+- Mensaje general.
+- Fecha y hora.
+- Lugar y dirección.
+- Código de vestuario.
+
+No escribas contraseñas ni la lista de invitados en GitHub. Esa información debe permanecer en las propiedades de Apps Script y en la hoja privada.
+
+## Estructura
+
+```text
+index.html                         Invitación pública
+admin.html                         Panel administrativo
+assets/images/retrato-cumpleanos.webp
+assets/css/styles.css              Diseño y animaciones
+assets/css/admin.css               Diseño del panel
+assets/js/config.js                Datos del evento y URL del backend
+assets/js/app.js                   Flujo de confirmación
+assets/js/admin.js                 Panel, edición y eliminación
+assets/js/api.js                   Conexión optimizada con Apps Script
+assets/js/mock-data.js             Demostración local opcional
+apps-script/Code.gs                Backend y Google Sheets
+apps-script/Bridge.html            Puente con GitHub Pages
+apps-script/appsscript.json        Manifiesto de la aplicación web
+```
+
+## Modo de demostración local (opcional)
+
+Para probar sin tocar Sheets, cambia temporalmente en `assets/js/config.js`:
+
+```js
+apiMode: "mock",
+```
+
+Luego ejecuta:
 
 ```bash
 python -m http.server 8080
 ```
 
-Abre `http://localhost:8080`.
+- Clave: `MAGIA26`
+- Usuario: `admin`
+- Contraseña: `Cumple2026!`
 
-- Clave de invitación de prueba: `MAGIA26`
-- Panel: `http://localhost:8080/admin.html`
-- Usuario de prueba: `admin`
-- Contraseña de prueba: `Cumple2026!`
-
-Los datos de demostración se guardan únicamente en el navegador mediante `localStorage`.
-
-## 2. Personalizar el cumpleaños
-
-Edita solamente `assets/js/config.js` para cambiar:
-
-- Nombre del cumpleaños.
-- Mensaje de invitación.
-- Fecha y hora.
-- Lugar y dirección.
-- Código de vestuario.
-
-No escribas invitados, contraseñas ni información privada en ese archivo, porque GitHub Pages publica el código del sitio.
-
-## 3. Crear la base de Google Sheets
-
-1. Crea un archivo nuevo de Google Sheets.
-2. Copia el identificador que aparece entre `/d/` y `/edit` en la dirección del archivo.
-3. No necesitas crear las hojas manualmente: el instalador del Apps Script las genera.
-
-Se crearán estas pestañas:
-
-| Hoja | Propósito |
-|---|---|
-| `INVITACIONES` | Persona principal, código secreto y estado general. |
-| `ASISTENTES` | Invitado principal y acompañantes asociados. |
-| `RESPUESTAS` | Historial de cada confirmación guardada. |
-| `ACCESOS` | Registro de intentos válidos e inválidos sin almacenar la clave escrita. |
-
-Mantén el archivo privado. La aplicación accede mediante Apps Script; no hace falta publicar la hoja.
-
-## 4. Configurar Google Apps Script
-
-1. En la hoja abre **Extensiones → Apps Script**.
-2. Reemplaza el contenido de `Code.gs` por el archivo `apps-script/Code.gs` de este proyecto.
-3. Crea un archivo HTML llamado exactamente `Bridge` y pega el contenido de `apps-script/Bridge.html`.
-4. En la configuración del proyecto activa la visualización del manifiesto y reemplaza `appsscript.json` por el archivo incluido.
-5. En `Code.gs`, busca la función `configurarProyecto()` y sustituye:
-   - `ID_DE_TU_GOOGLE_SHEETS` por el ID de la hoja.
-   - `administrador` por el usuario deseado.
-   - `CAMBIA_ESTA_CONTRASENA` por una contraseña fuerte de mínimo 10 caracteres.
-   - `https://TU_USUARIO.github.io` por el origen real de GitHub Pages, sin ruta final.
-6. Selecciona `configurarProyecto` en el editor y presiona **Ejecutar**.
-7. Acepta los permisos solicitados por Google.
-8. Cuando termine correctamente, reemplaza nuevamente la contraseña visible en `configurarProyecto()` por el texto `CAMBIA_ESTA_CONTRASENA` y guarda el archivo. El hash configurado seguirá funcionando.
-
-La contraseña se transforma en un hash con sal antes de guardarse en las propiedades del script. No queda escrita en Sheets ni se entrega al navegador después de la configuración.
-
-## 5. Publicar el Apps Script
-
-1. Pulsa **Implementar → Nueva implementación**.
-2. Selecciona **Aplicación web**.
-3. Ejecutar como: **Tú**.
-4. Quién tiene acceso: **Cualquier persona**.
-5. Publica y copia la URL terminada en `/exec`.
-
-Cada cambio futuro del backend requiere crear una versión nueva desde **Administrar implementaciones**.
-
-## 6. Conectar la página con Apps Script
-
-En `assets/js/config.js` cambia:
-
-```js
-apiMode: "apps-script",
-appsScriptUrl: "URL_TERMINADA_EN_EXEC",
-```
-
-La página y Apps Script se comunican mediante un iframe oculto que acepta mensajes exclusivamente desde el dominio configurado. Esto evita guardar credenciales o exponer directamente la hoja.
-
-## 7. Publicar en GitHub Pages
-
-1. Crea un repositorio público en GitHub.
-2. Sube todos los archivos y carpetas del proyecto.
-3. Abre **Settings → Pages**.
-4. En **Build and deployment**, selecciona **Deploy from a branch**.
-5. Elige la rama `main` y la carpeta `/root`.
-6. Guarda y espera a que GitHub muestre la dirección pública.
-
-Direcciones esperadas:
-
-```text
-Invitación: https://TU_USUARIO.github.io/NOMBRE_REPOSITORIO/
-Administración: https://TU_USUARIO.github.io/NOMBRE_REPOSITORIO/admin.html
-```
-
-## 8. Uso del panel administrativo
-
-Después de iniciar sesión podrás:
-
-- Registrar el invitado principal.
-- Agregar acompañantes, uno por línea.
-- Generar automáticamente una clave única de ocho caracteres.
-- Copiar la clave para enviarla al invitado.
-- Consultar confirmados, rechazados y pendientes.
-- Ver cuántas personas están vinculadas a cada invitación.
-
-La sesión administrativa vence aproximadamente después de seis horas o cuando Apps Script libera su caché. En ese caso solo debes ingresar nuevamente.
-
-## Seguridad y privacidad
-
-- No subas una lista de invitados al repositorio.
-- No guardes la contraseña administrativa en `config.js` ni en archivos de GitHub.
-- Comparte una clave únicamente con el invitado correspondiente.
-- Usa nombres y datos mínimos necesarios para organizar el evento.
-- Mantén privada la hoja de cálculo.
-- Para cambiar la contraseña, modifica temporalmente `configurarProyecto()`, vuelve a ejecutarla y retira el valor del editor cuando termines.
-
-## Archivos principales
-
-```text
-index.html                 Experiencia pública
-admin.html                 Panel administrativo
-assets/css/styles.css      Diseño y animaciones
-assets/css/admin.css       Diseño del panel
-assets/js/config.js        Datos editables del evento
-assets/js/app.js           Flujo de la invitación
-assets/js/admin.js         Flujo administrativo
-assets/js/api.js           Conexión con Apps Script
-assets/js/mock-data.js     Datos de demostración
-apps-script/Code.gs        Backend y manejo de Sheets
-apps-script/Bridge.html    Puente seguro con GitHub Pages
-```
+Antes de publicar vuelve a usar `apiMode: "apps-script"`.

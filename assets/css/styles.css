@@ -33,7 +33,7 @@ body {
   overflow-x: hidden;
 }
 
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
 
 .ambient {
@@ -453,7 +453,36 @@ form label:not(.attendance-options label) {
 .invitation-content h2 { color: #4a346f; font-size: clamp(2.6rem, 8vw, 5.8rem); font-style: italic; }
 .guest-line { margin: 14px 0; color: #5f566e; font-family: Georgia, serif; font-size: 1.16rem; }
 .guest-line strong { color: var(--violet-deep); font-size: 1.24em; }
+.guest-line #guest-treatment { color: var(--violet-deep); }
 .invitation-message { max-width: 48ch; margin: 17px auto 28px; color: #665e74; line-height: 1.72; }
+
+.honoree-photo {
+  position: relative;
+  width: clamp(150px, 28vw, 210px);
+  aspect-ratio: 4 / 5;
+  margin: 18px auto 22px;
+  padding: 6px;
+  border: 1px solid rgba(172, 130, 52, .55);
+  border-radius: 999px 999px 22px 22px;
+  background: linear-gradient(145deg, #f4dfa8, #8b652b);
+  box-shadow: 0 16px 34px rgba(66, 45, 90, .2);
+  overflow: hidden;
+}
+.honoree-photo::after {
+  content: "✦";
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #f8e6ae;
+  background: var(--violet-deep);
+  box-shadow: 0 4px 12px rgba(34, 21, 58, .3);
+}
+.honoree-photo img { width: 100%; height: 100%; border-radius: inherit; display: block; object-fit: cover; object-position: center 28%; }
 
 .magic-divider { width: min(250px, 70%); margin: 18px auto; display: flex; align-items: center; gap: 14px; color: var(--gold); }
 .magic-divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c8a252); }
@@ -489,6 +518,27 @@ form label:not(.attendance-options label) {
 .assemble .reveal-piece:nth-child(6) { animation-delay: 1.3s; }
 .assemble .reveal-piece:nth-child(7) { animation-delay: 1.48s; }
 .assemble .reveal-piece:nth-child(8) { animation-delay: 1.68s; }
+.assemble .reveal-piece:nth-child(9) { animation-delay: 1.84s; }
+
+.admin-entry {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 238, 196, .3);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 250, 240, .72);
+  background: rgba(30, 19, 55, .72);
+  box-shadow: 0 9px 24px rgba(0,0,0,.22);
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  transition: transform var(--transition), color var(--transition), background var(--transition);
+}
+.admin-entry:hover { color: #fff; background: var(--violet-deep); transform: rotate(25deg) scale(1.06); }
 
 /* Respuesta */
 .response-icon, .final-seal {
@@ -588,6 +638,7 @@ form label:not(.attendance-options label) {
   .intro-copy { margin: 0 auto; }
   .glass-card { padding: 31px 22px; border-radius: 23px; }
   .invitation-card { min-height: auto; padding: 52px 29px; }
+  .honoree-photo { width: 165px; }
   .event-grid, .decision-grid { grid-template-columns: 1fr; }
   .decision { min-height: 128px; }
 }
@@ -610,28 +661,4 @@ form label:not(.attendance-options label) {
   .button-glow, .reveal-piece, .corner { opacity: 1; transform: none; }
   .frame-top, .frame-bottom { transform: scaleX(1); }
   .frame-left, .frame-right { transform: scaleY(1); }
-}
-.admin-access {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 20;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: rgba(255, 255, 255, 0.65);
-  background: rgba(20, 13, 42, 0.55);
-  text-decoration: none;
-  font-size: 18px;
-  backdrop-filter: blur(10px);
-  transition: 0.25s ease;
-}
-
-.admin-access:hover {
-  color: #fff;
-  background: rgba(76, 52, 120, 0.9);
-  transform: rotate(45deg) scale(1.08);
 }

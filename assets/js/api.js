@@ -31,14 +31,14 @@
       const message = event.data || {};
 
       if (message.type === "bridge-ready") {
-        bridgeWindow = event.source;
         bridgeOrigin = event.origin;
+        bridgeWindow = event.source;
         bridgeReady = true;
         window.dispatchEvent(new CustomEvent("invitation-api-ready"));
         return;
       }
 
-      if (event.source !== bridgeWindow || message.type !== "api-response" || !message.id || !pending.has(message.id)) return;
+      if (message.type !== "api-response" || !message.id || !pending.has(message.id)) return;
       const request = pending.get(message.id);
       pending.delete(message.id);
       clearTimeout(request.timeout);
@@ -60,7 +60,6 @@
 
   async function bridgeRequest(action, payload) {
     await waitForBridge();
-    const iframe = document.getElementById("api-bridge");
     const id = `request-${Date.now()}-${++requestSequence}`;
 
     return new Promise((resolve, reject) => {

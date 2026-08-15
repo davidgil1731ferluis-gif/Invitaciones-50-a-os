@@ -6,16 +6,15 @@ const SHEETS = Object.freeze({
 });
 
 const HEADERS = Object.freeze({
-  INVITACIONES: ["ID", "CODIGO", "NOMBRE_PRINCIPAL", "EMAIL", "TELEFONO", "ESTADO", "FECHA_RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN"],
-  ASISTENTES: ["ID", "INVITACION_ID", "NOMBRE", "TIPO", "RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN"],
+  INVITACIONES: ["ID", "CODIGO", "NOMBRE_PRINCIPAL", "EMAIL", "TELEFONO", "ESTADO", "FECHA_RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN", "TRATAMIENTO", "MESA"],
+  ASISTENTES: ["ID", "INVITACION_ID", "NOMBRE", "TIPO", "RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN", "MESA"],
   RESPUESTAS: ["ID", "INVITACION_ID", "RESPUESTA_PRINCIPAL", "TOTAL_SI", "TOTAL_NO", "FECHA"],
   ACCESOS: ["ID", "INVITACION_ID", "RESULTADO", "FECHA"]
 });
 
-/**
- * Ejecuta esta función una sola vez desde el editor de Apps Script.
- * Sustituye los cuatro valores del ejemplo antes de ejecutarla.
- */
+const PUBLIC_CACHE_SECONDS = 300;
+
+/** Solo para configurar un proyecto nuevo o cambiar credenciales. */
 function configurarProyecto() {
   setupProject_(
     "ID_DE_TU_GOOGLE_SHEETS",
@@ -25,18 +24,25 @@ function configurarProyecto() {
   );
 }
 
+/** Ejecuta UNA VEZ después de instalar esta actualización. No borra datos. */
+function actualizarEstructura() {
+  const spreadsheet = spreadsheet_();
+  Object.keys(HEADERS).forEach(function (sheetName) {
+    ensureSheet_(spreadsheet, sheetName, HEADERS[sheetName]);
+  });
+  return "Estructura actualizada correctamente.";
+}
+
 function setupProject_(spreadsheetId, adminUser, adminPassword, allowedOrigins) {
   if (!spreadsheetId || spreadsheetId.indexOf("ID_DE_") === 0) throw new Error("Configura el ID real del archivo de Google Sheets.");
   if (!adminUser || adminUser.length < 4) throw new Error("El usuario administrativo debe tener al menos 4 caracteres.");
   if (!adminPassword || adminPassword.length < 10 || adminPassword.indexOf("CAMBIA_") === 0) {
     throw new Error("Usa una contraseña administrativa de al menos 10 caracteres.");
   }
-
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   Object.keys(HEADERS).forEach(function (sheetName) {
     ensureSheet_(spreadsheet, sheetName, HEADERS[sheetName]);
   });
-
   const salt = Utilities.getUuid();
   PropertiesService.getScriptProperties().setProperties({
     SPREADSHEET_ID: spreadsheetId,
@@ -56,7 +62,9 @@ function doGet() {
 function getPublicConfig() {
   const raw = PropertiesService.getScriptProperties().getProperty("ALLOWED_ORIGINS") || "";
   return {
-    allowedOrigins: raw.split(",").map(function (value) { return value.trim().replace(/\/$/, ""); }).filter(Boolean)
+    allowedOrigins: raw.split(",").map(function (value) {
+      return value.trim().replace(/\/$/, "");
+    }).filter(Boolean)
   };
 }
 
@@ -69,6 +77,8 @@ function dispatch(action, payload) {
     case "adminLogin": return adminLogin_(payload);
     case "adminDashboard": return adminDashboard_(payload);
     case "adminCreateInvitation": return adminCreateInvitation_(payload);
+    case "adminUpdateInvitation": return adminUpdateInvitation_(payload);
+    case "adminDeleteInvitation": return adminDeleteInvitation_(payload);
     default: throw new Error("La acción solicitada no está permitida.");
   }
 }
@@ -76,15 +86,22 @@ function dispatch(action, payload) {
 function getInvitation_(payload) {
   const code = normalizeCode_(payload.code);
   if (code.length < 6) throw new Error("La clave ingresada no es válida.");
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(invitationCacheKey_(code));
+  if (cached) return JSON.parse(cached);
 
   const invitation = findInvitationByCode_(code);
   if (!invitation || !asBoolean_(invitation.ACTIVO)) {
     logAccess_(invitation ? invitation.ID : "", "CLAVE_NO_VALIDA");
     throw new Error("No encontramos una invitación activa con esa clave.");
   }
-
+  const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
+    return item.INVITACION_ID === invitation.ID && asBoolean_(item.ACTIVO);
+  });
+  const model = invitationPublicModel_(invitation, attendees);
+  cache.put(invitationCacheKey_(code), JSON.stringify(model), PUBLIC_CACHE_SECONDS);
   logAccess_(invitation.ID, "ACCESO_CORRECTO");
-  return invitationPublicModel_(invitation);
+  return model;
 }
 
 function saveMainResponse_(payload) {
@@ -93,28 +110,27 @@ function saveMainResponse_(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const invitation = findObjectBy_(SHEETS.INVITATIONS, "ID", invitationId);
+    const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
-
-    const now = new Date();
-    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, {
-      ESTADO: response,
-      FECHA_RESPUESTA: now,
-      ACTUALIZADO_EN: now
-    });
-
     const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
     });
+    const now = new Date();
+    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, { ESTADO: response, FECHA_RESPUESTA: now, ACTUALIZADO_EN: now });
+    invitation.ESTADO = response;
+    invitation.FECHA_RESPUESTA = now;
+    const attendeeChanges = [];
     attendees.forEach(function (attendee) {
       if (attendee.TIPO === "PRINCIPAL" || response === "NO") {
-        updateObjectRow_(SHEETS.ATTENDEES, attendee._row, { RESPUESTA: response, ACTUALIZADO_EN: now });
+        attendee.RESPUESTA = response;
+        attendee.ACTUALIZADO_EN = now;
+        attendeeChanges.push({ row: attendee._row, changes: { RESPUESTA: response, ACTUALIZADO_EN: now } });
       }
     });
-
-    if (response === "NO") appendResponseSnapshot_(invitationId, "NO");
-    const updated = findObjectBy_(SHEETS.INVITATIONS, "ID", invitationId);
-    return { saved: true, invitation: invitationPublicModel_(updated) };
+    batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
+    if (response === "NO") appendResponseSnapshot_(invitationId, "NO", attendees);
+    invalidateInvitationCache_(invitation.CODIGO);
+    return { saved: true, invitation: invitationPublicModel_(invitation, attendees) };
   } finally {
     lock.releaseLock();
   }
@@ -124,7 +140,6 @@ function saveAttendees_(payload) {
   const invitationId = cleanText_(payload.invitationId, 80);
   const selections = Array.isArray(payload.attendees) ? payload.attendees : [];
   if (!selections.length) throw new Error("Debes confirmar al menos una persona.");
-
   const requested = {};
   selections.forEach(function (selection) {
     requested[cleanText_(selection.id, 80)] = normalizeResponse_(selection.response);
@@ -133,31 +148,29 @@ function saveAttendees_(payload) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const invitation = findObjectBy_(SHEETS.INVITATIONS, "ID", invitationId);
+    const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
-
     const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
     });
     if (!attendees.length) throw new Error("No encontramos asistentes vinculados a esta invitación.");
-
-    const now = new Date();
     attendees.forEach(function (attendee) {
       if (!Object.prototype.hasOwnProperty.call(requested, attendee.ID)) {
         throw new Error("Debes indicar la asistencia de cada persona del grupo.");
       }
-      updateObjectRow_(SHEETS.ATTENDEES, attendee._row, {
-        RESPUESTA: requested[attendee.ID],
-        ACTUALIZADO_EN: now
-      });
     });
 
-    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, {
-      ESTADO: "SI",
-      FECHA_RESPUESTA: now,
-      ACTUALIZADO_EN: now
+    const now = new Date();
+    const attendeeChanges = [];
+    attendees.forEach(function (attendee) {
+      attendee.RESPUESTA = requested[attendee.ID];
+      attendee.ACTUALIZADO_EN = now;
+      attendeeChanges.push({ row: attendee._row, changes: { RESPUESTA: attendee.RESPUESTA, ACTUALIZADO_EN: now } });
     });
-    appendResponseSnapshot_(invitationId, "SI");
+    batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
+    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, { ESTADO: "SI", FECHA_RESPUESTA: now, ACTUALIZADO_EN: now });
+    appendResponseSnapshot_(invitationId, "SI", attendees);
+    invalidateInvitationCache_(invitation.CODIGO);
     return { saved: true };
   } finally {
     lock.releaseLock();
@@ -171,12 +184,10 @@ function adminLogin_(payload) {
   const expectedUser = properties.getProperty("ADMIN_USER");
   const salt = properties.getProperty("ADMIN_SALT");
   const expectedHash = properties.getProperty("ADMIN_HASH");
-
   if (!expectedUser || !salt || !expectedHash) throw new Error("El administrador todavía no ha sido configurado.");
   const validUser = constantTimeEquals_(username, expectedUser);
   const validPassword = constantTimeEquals_(hashPassword_(password, salt), expectedHash);
   if (!validUser || !validPassword) throw new Error("Usuario o contraseña incorrectos.");
-
   const token = Utilities.getUuid() + Utilities.getUuid();
   CacheService.getScriptCache().put("admin-session:" + token, expectedUser, 21600);
   return { token: token, username: expectedUser };
@@ -186,22 +197,40 @@ function adminDashboard_(payload) {
   requireAdmin_(payload.token);
   const invitations = objects_(SHEETS.INVITATIONS).filter(function (item) { return asBoolean_(item.ACTIVO); });
   const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) { return asBoolean_(item.ACTIVO); });
-  const attendeeCount = {};
-  attendees.forEach(function (item) { attendeeCount[item.INVITACION_ID] = (attendeeCount[item.INVITACION_ID] || 0) + 1; });
-
+  const attendeesByInvitation = {};
+  attendees.forEach(function (item) {
+    if (!attendeesByInvitation[item.INVITACION_ID]) attendeesByInvitation[item.INVITACION_ID] = [];
+    attendeesByInvitation[item.INVITACION_ID].push(item);
+  });
+  const totals = responseCounts_(attendees);
   return {
-    total: invitations.length,
-    confirmed: invitations.filter(function (item) { return item.ESTADO === "SI"; }).length,
-    declined: invitations.filter(function (item) { return item.ESTADO === "NO"; }).length,
-    pending: invitations.filter(function (item) { return item.ESTADO === "PENDIENTE"; }).length,
+    invitationTotal: invitations.length,
+    attendeeTotal: attendees.length,
+    confirmed: totals.yes,
+    declined: totals.no,
+    pending: totals.pending,
     invitations: invitations.map(function (item) {
+      const group = attendeesByInvitation[item.ID] || [];
       return {
         id: item.ID,
         code: item.CODIGO,
         primaryName: item.NOMBRE_PRINCIPAL,
-        status: item.ESTADO,
-        active: true,
-        attendeeCount: attendeeCount[item.ID] || 0,
+        email: item.EMAIL || "",
+        phone: item.TELEFONO || "",
+        salutationDetail: item.TRATAMIENTO || "",
+        tableName: item.MESA || "",
+        status: item.ESTADO || "PENDIENTE",
+        attendeeCount: group.length,
+        counts: responseCounts_(group),
+        attendees: group.map(function (attendee) {
+          return {
+            id: attendee.ID,
+            name: attendee.NOMBRE,
+            type: attendee.TIPO,
+            response: attendee.RESPUESTA || "PENDIENTE",
+            tableName: attendee.MESA || item.MESA || ""
+          };
+        }),
         respondedAt: dateToIso_(item.FECHA_RESPUESTA)
       };
     }).reverse()
@@ -210,69 +239,174 @@ function adminDashboard_(payload) {
 
 function adminCreateInvitation_(payload) {
   requireAdmin_(payload.token);
-  const primaryName = cleanText_(payload.primaryName, 120);
-  const email = cleanText_(payload.email, 160);
-  const phone = cleanText_(payload.phone, 40);
-  const companions = (Array.isArray(payload.companions) ? payload.companions : [])
-    .map(function (name) { return cleanText_(name, 120); })
-    .filter(Boolean);
-
-  if (primaryName.length < 2) throw new Error("Ingresa el nombre del invitado principal.");
-  if (companions.length > 20) throw new Error("Una invitación puede contener máximo 20 acompañantes.");
-
+  const data = validateInvitationInput_(payload);
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
     const invitationId = Utilities.getUuid();
     const code = generateUniqueCode_();
     const now = new Date();
-    sheet_(SHEETS.INVITATIONS).appendRow([
-      invitationId, code, primaryName, email, phone, "PENDIENTE", "", true, now, now
-    ]);
-
-    const allNames = [primaryName].concat(companions);
-    const attendeeRows = allNames.map(function (name, index) {
-      return [Utilities.getUuid(), invitationId, name, index === 0 ? "PRINCIPAL" : "ACOMPANANTE", "PENDIENTE", true, now, now];
+    appendObjectRow_(SHEETS.INVITATIONS, {
+      ID: invitationId, CODIGO: code, NOMBRE_PRINCIPAL: data.primaryName,
+      EMAIL: data.email, TELEFONO: data.phone, ESTADO: "PENDIENTE",
+      FECHA_RESPUESTA: "", ACTIVO: true, CREADO_EN: now, ACTUALIZADO_EN: now,
+      TRATAMIENTO: data.salutationDetail, MESA: data.tableName
     });
-    if (attendeeRows.length) {
-      const attendeeSheet = sheet_(SHEETS.ATTENDEES);
-      attendeeSheet.getRange(attendeeSheet.getLastRow() + 1, 1, attendeeRows.length, HEADERS.ASISTENTES.length).setValues(attendeeRows);
-    }
-
-    return {
-      code: code,
-      invitation: { id: invitationId, primaryName: primaryName }
-    };
+    const rows = [data.primaryName].concat(data.companions).map(function (name, index) {
+      return objectRowValues_(SHEETS.ATTENDEES, {
+        ID: Utilities.getUuid(), INVITACION_ID: invitationId, NOMBRE: name,
+        TIPO: index === 0 ? "PRINCIPAL" : "ACOMPANANTE", RESPUESTA: "PENDIENTE",
+        ACTIVO: true, CREADO_EN: now, ACTUALIZADO_EN: now, MESA: data.tableName
+      });
+    });
+    appendRows_(SHEETS.ATTENDEES, rows);
+    return { code: code, invitation: { id: invitationId, primaryName: data.primaryName } };
   } finally {
     lock.releaseLock();
   }
 }
 
-function invitationPublicModel_(invitation) {
-  const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
+function adminUpdateInvitation_(payload) {
+  requireAdmin_(payload.token);
+  const invitationId = cleanText_(payload.invitationId, 80);
+  const data = validateInvitationInput_(payload);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
+    if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no existe o fue eliminada.");
+    const now = new Date();
+    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, {
+      NOMBRE_PRINCIPAL: data.primaryName, EMAIL: data.email, TELEFONO: data.phone,
+      TRATAMIENTO: data.salutationDetail, MESA: data.tableName, ACTUALIZADO_EN: now
+    });
+
+    const group = objects_(SHEETS.ATTENDEES).filter(function (item) {
+      return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
+    });
+    const principal = group.find(function (item) { return item.TIPO === "PRINCIPAL"; });
+    const attendeeChanges = [];
+    if (principal) {
+      attendeeChanges.push({ row: principal._row, changes: { NOMBRE: data.primaryName, MESA: data.tableName, ACTUALIZADO_EN: now } });
+    } else {
+      appendObjectRow_(SHEETS.ATTENDEES, {
+        ID: Utilities.getUuid(), INVITACION_ID: invitationId, NOMBRE: data.primaryName,
+        TIPO: "PRINCIPAL", RESPUESTA: "PENDIENTE", ACTIVO: true,
+        CREADO_EN: now, ACTUALIZADO_EN: now, MESA: data.tableName
+      });
+    }
+
+    const unused = group.filter(function (item) { return item.TIPO !== "PRINCIPAL"; });
+    const newRows = [];
+    data.companions.forEach(function (name) {
+      const key = normalizeName_(name);
+      const matchIndex = unused.findIndex(function (item) { return normalizeName_(item.NOMBRE) === key; });
+      if (matchIndex >= 0) {
+        const attendee = unused.splice(matchIndex, 1)[0];
+        attendeeChanges.push({ row: attendee._row, changes: { NOMBRE: name, MESA: data.tableName, ACTUALIZADO_EN: now } });
+      } else {
+        newRows.push(objectRowValues_(SHEETS.ATTENDEES, {
+          ID: Utilities.getUuid(), INVITACION_ID: invitationId, NOMBRE: name,
+          TIPO: "ACOMPANANTE", RESPUESTA: "PENDIENTE", ACTIVO: true,
+          CREADO_EN: now, ACTUALIZADO_EN: now, MESA: data.tableName
+        }));
+      }
+    });
+    unused.forEach(function (attendee) {
+      attendeeChanges.push({ row: attendee._row, changes: { ACTIVO: false, ACTUALIZADO_EN: now } });
+    });
+    batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
+    appendRows_(SHEETS.ATTENDEES, newRows);
+    invalidateInvitationCache_(invitation.CODIGO);
+    return { updated: true, code: invitation.CODIGO };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function adminDeleteInvitation_(payload) {
+  requireAdmin_(payload.token);
+  const invitationId = cleanText_(payload.invitationId, 80);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
+    if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya fue eliminada.");
+    const now = new Date();
+    updateObjectRow_(SHEETS.INVITATIONS, invitation._row, { ACTIVO: false, ACTUALIZADO_EN: now });
+    const attendeeChanges = objects_(SHEETS.ATTENDEES).filter(function (item) {
+      return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
+    }).map(function (attendee) {
+      return { row: attendee._row, changes: { ACTIVO: false, ACTUALIZADO_EN: now } };
+    });
+    batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
+    invalidateInvitationCache_(invitation.CODIGO);
+    return { deleted: true };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function validateInvitationInput_(payload) {
+  const primaryName = cleanText_(payload.primaryName, 120);
+  const email = cleanText_(payload.email, 160);
+  const phone = cleanText_(payload.phone, 40);
+  const salutationDetail = cleanText_(payload.salutationDetail, 100);
+  const tableName = cleanText_(payload.tableName, 60);
+  const seen = {};
+  const primaryKey = normalizeName_(primaryName);
+  const companions = (Array.isArray(payload.companions) ? payload.companions : [])
+    .map(function (name) { return cleanText_(name, 120); })
+    .filter(function (name) {
+      const key = normalizeName_(name);
+      if (!key || key === primaryKey || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  if (primaryName.length < 2) throw new Error("Ingresa el nombre del invitado principal.");
+  if (companions.length > 20) throw new Error("Una invitación puede contener máximo 20 acompañantes.");
+  return { primaryName: primaryName, email: email, phone: phone, salutationDetail: salutationDetail, tableName: tableName, companions: companions };
+}
+
+function invitationPublicModel_(invitation, attendees) {
+  const group = attendees || objects_(SHEETS.ATTENDEES).filter(function (item) {
     return item.INVITACION_ID === invitation.ID && asBoolean_(item.ACTIVO);
   });
   return {
     id: invitation.ID,
     primaryName: invitation.NOMBRE_PRINCIPAL,
-    status: invitation.ESTADO,
-    attendees: attendees.map(function (item) {
-      return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA };
+    salutationDetail: invitation.TRATAMIENTO || "",
+    tableName: invitation.MESA || "",
+    status: invitation.ESTADO || "PENDIENTE",
+    attendees: group.map(function (item) {
+      return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA || "PENDIENTE", tableName: item.MESA || invitation.MESA || "" };
     })
   };
 }
 
-function appendResponseSnapshot_(invitationId, primaryResponse) {
-  const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
+function responseCounts_(attendees) {
+  return attendees.reduce(function (totals, item) {
+    const response = String(item.RESPUESTA || "PENDIENTE").toUpperCase();
+    if (response === "SI") totals.yes += 1;
+    else if (response === "NO") totals.no += 1;
+    else totals.pending += 1;
+    return totals;
+  }, { yes: 0, no: 0, pending: 0 });
+}
+
+function appendResponseSnapshot_(invitationId, primaryResponse, attendees) {
+  const group = attendees || objects_(SHEETS.ATTENDEES).filter(function (item) {
     return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
   });
-  const yes = attendees.filter(function (item) { return item.RESPUESTA === "SI"; }).length;
-  const no = attendees.filter(function (item) { return item.RESPUESTA === "NO"; }).length;
-  sheet_(SHEETS.RESPONSES).appendRow([Utilities.getUuid(), invitationId, primaryResponse, yes, no, new Date()]);
+  const counts = responseCounts_(group);
+  appendObjectRow_(SHEETS.RESPONSES, {
+    ID: Utilities.getUuid(), INVITACION_ID: invitationId, RESPUESTA_PRINCIPAL: primaryResponse,
+    TOTAL_SI: counts.yes, TOTAL_NO: counts.no, FECHA: new Date()
+  });
 }
 
 function logAccess_(invitationId, result) {
-  sheet_(SHEETS.ACCESS).appendRow([Utilities.getUuid(), invitationId || "", result, new Date()]);
+  appendObjectRow_(SHEETS.ACCESS, { ID: Utilities.getUuid(), INVITACION_ID: invitationId || "", RESULTADO: result, FECHA: new Date() });
 }
 
 function requireAdmin_(token) {
@@ -284,6 +418,8 @@ function requireAdmin_(token) {
 
 function generateUniqueCode_() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const existing = {};
+  objects_(SHEETS.INVITATIONS).forEach(function (item) { existing[normalizeCode_(item.CODIGO)] = true; });
   for (let attempt = 0; attempt < 12; attempt += 1) {
     let code = "";
     const source = Utilities.getUuid().replace(/-/g, "").toUpperCase();
@@ -291,7 +427,7 @@ function generateUniqueCode_() {
       const value = parseInt(source.charAt(index), 16);
       code += alphabet.charAt((value + index * 7) % alphabet.length);
     }
-    if (!findInvitationByCode_(code)) return code;
+    if (!existing[code]) return code;
   }
   throw new Error("No fue posible generar un código único. Intenta nuevamente.");
 }
@@ -301,10 +437,14 @@ function ensureSheet_(spreadsheet, name, headers) {
   if (!sheet) sheet = spreadsheet.insertSheet(name);
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#4d3478").setFontColor("#ffffff");
-    sheet.autoResizeColumns(1, headers.length);
+  } else {
+    const current = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0].map(String);
+    const missing = headers.filter(function (header) { return current.indexOf(header) === -1; });
+    if (missing.length) sheet.getRange(1, current.length + 1, 1, missing.length).setValues([missing]);
   }
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight("bold").setBackground("#4d3478").setFontColor("#ffffff");
+  sheet.autoResizeColumns(1, sheet.getLastColumn());
 }
 
 function spreadsheet_() {
@@ -324,15 +464,12 @@ function objects_(sheetName) {
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) return [];
   const headers = values[0].map(String);
-  return values.slice(1).filter(function (row) { return row.some(function (value) { return value !== ""; }); }).map(function (row, index) {
+  return values.slice(1).map(function (row, index) {
+    if (!row.some(function (value) { return value !== ""; })) return null;
     const object = { _row: index + 2 };
     headers.forEach(function (header, column) { object[header] = row[column]; });
     return object;
-  });
-}
-
-function findObjectBy_(sheetName, field, value) {
-  return objects_(sheetName).find(function (item) { return String(item[field]) === String(value); }) || null;
+  }).filter(Boolean);
 }
 
 function findInvitationByCode_(code) {
@@ -342,45 +479,80 @@ function findInvitationByCode_(code) {
 function updateObjectRow_(sheetName, rowNumber, changes) {
   const sheet = sheet_(sheetName);
   const headers = HEADERS[sheetName];
+  const range = sheet.getRange(rowNumber, 1, 1, headers.length);
+  const row = range.getValues()[0];
   Object.keys(changes).forEach(function (field) {
-    const column = headers.indexOf(field) + 1;
-    if (column > 0) sheet.getRange(rowNumber, column).setValue(changes[field]);
+    const column = headers.indexOf(field);
+    if (column >= 0) row[column] = changes[field];
+  });
+  range.setValues([row]);
+}
+
+function batchUpdateObjectRows_(sheetName, updates) {
+  if (!updates.length) return;
+  const sheet = sheet_(sheetName);
+  const headers = HEADERS[sheetName];
+  const firstRow = Math.min.apply(null, updates.map(function (update) { return update.row; }));
+  const lastRow = Math.max.apply(null, updates.map(function (update) { return update.row; }));
+  const range = sheet.getRange(firstRow, 1, lastRow - firstRow + 1, headers.length);
+  const values = range.getValues();
+  updates.forEach(function (update) {
+    const row = values[update.row - firstRow];
+    Object.keys(update.changes).forEach(function (field) {
+      const column = headers.indexOf(field);
+      if (column >= 0) row[column] = update.changes[field];
+    });
+  });
+  range.setValues(values);
+}
+
+function appendObjectRow_(sheetName, object) {
+  appendRows_(sheetName, [objectRowValues_(sheetName, object)]);
+}
+
+function objectRowValues_(sheetName, object) {
+  return HEADERS[sheetName].map(function (header) {
+    return Object.prototype.hasOwnProperty.call(object, header) ? object[header] : "";
   });
 }
 
+function appendRows_(sheetName, rows) {
+  if (!rows.length) return;
+  const sheet = sheet_(sheetName);
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS[sheetName].length).setValues(rows);
+}
+
+function invitationCacheKey_(code) { return "inv-code:" + normalizeCode_(code); }
+function invalidateInvitationCache_(code) {
+  if (code) CacheService.getScriptCache().remove(invitationCacheKey_(code));
+}
 function normalizeCode_(value) {
   return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
 }
-
+function normalizeName_(value) { return cleanText_(value, 120).toLowerCase().replace(/\s+/g, " "); }
 function normalizeUsername_(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 60);
 }
-
 function normalizeResponse_(value) {
   const response = String(value || "").trim().toUpperCase();
   if (response !== "SI" && response !== "NO") throw new Error("La respuesta seleccionada no es válida.");
   return response;
 }
-
 function cleanText_(value, maxLength) {
   return String(value || "").replace(/[<>]/g, "").trim().slice(0, maxLength || 200);
 }
-
 function asBoolean_(value) {
   return value === true || String(value).toUpperCase() === "TRUE" || String(value).toUpperCase() === "SI";
 }
-
 function dateToIso_(value) {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
   return isNaN(date.getTime()) ? null : date.toISOString();
 }
-
 function hashPassword_(password, salt) {
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(salt) + "::" + String(password), Utilities.Charset.UTF_8);
   return Utilities.base64EncodeWebSafe(bytes);
 }
-
 function constantTimeEquals_(left, right) {
   left = String(left || "");
   right = String(right || "");

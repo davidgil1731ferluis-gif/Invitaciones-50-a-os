@@ -11,6 +11,7 @@
     secretError: document.getElementById("secret-error"),
     invitationCard: document.getElementById("invitation-card"),
     guestName: document.getElementById("guest-name"),
+    guestTreatment: document.getElementById("guest-treatment"),
     responseName: document.getElementById("response-name"),
     goToResponse: document.getElementById("go-to-response"),
     accept: document.getElementById("accept-invitation"),
@@ -187,7 +188,9 @@
     try {
       state.invitation = await window.InvitationApi.request("getInvitation", { code });
       elements.guestName.textContent = state.invitation.primaryName;
-      elements.responseName.textContent = `${state.invitation.primaryName}, ¿nos acompañas?`;
+      elements.guestTreatment.textContent = state.invitation.salutationDetail || "";
+      const fullGreeting = [state.invitation.primaryName, state.invitation.salutationDetail].filter(Boolean).join(" ");
+      elements.responseName.textContent = `${fullGreeting}, ¿nos acompañan?`;
       revealInvitation();
     } catch (error) {
       elements.secretError.textContent = error.message;

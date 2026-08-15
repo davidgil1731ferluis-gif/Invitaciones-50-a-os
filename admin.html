@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#17102f">
   <meta name="robots" content="noindex,nofollow">
   <title>Administración de invitaciones</title>
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="dns-prefetch" href="//script.google.com">
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/admin.css">
 </head>
@@ -46,18 +48,20 @@
       </header>
 
       <div class="metric-grid" aria-label="Resumen de confirmaciones">
-        <article class="metric"><span>Total</span><strong id="metric-total">0</strong></article>
-        <article class="metric metric-success"><span>Confirmadas</span><strong id="metric-confirmed">0</strong></article>
+        <article class="metric"><span>Invitaciones</span><strong id="metric-invitations">0</strong></article>
+        <article class="metric"><span>Total personas</span><strong id="metric-total">0</strong></article>
+        <article class="metric metric-success"><span>Sí asistirán</span><strong id="metric-confirmed">0</strong></article>
         <article class="metric metric-danger"><span>No asistirán</span><strong id="metric-declined">0</strong></article>
-        <article class="metric metric-pending"><span>Pendientes</span><strong id="metric-pending">0</strong></article>
+        <article class="metric metric-pending"><span>Sin responder</span><strong id="metric-pending">0</strong></article>
       </div>
 
       <div class="admin-grid">
         <section class="admin-panel create-panel" aria-labelledby="create-title">
           <div class="panel-heading">
-            <div><p class="eyebrow">Nueva invitación</p><h2 id="create-title">Registrar invitado</h2></div>
+            <div><p id="form-eyebrow" class="eyebrow">Nueva invitación</p><h2 id="create-title">Registrar invitado</h2></div>
           </div>
           <form id="create-invitation-form">
+            <input id="editing-invitation-id" name="invitationId" type="hidden">
             <div class="form-grid">
               <div class="field field-wide">
                 <label for="primary-name">Nombre del invitado principal</label>
@@ -71,6 +75,29 @@
                 <label for="guest-phone">Teléfono (opcional)</label>
                 <input id="guest-phone" name="phone" type="tel">
               </div>
+              <div class="field">
+                <label for="salutation-detail">Texto después del nombre</label>
+                <select id="salutation-detail" name="salutationDetail">
+                  <option value="">Sin texto adicional</option>
+                  <option value="Esposa e hijos">Esposa e hijos</option>
+                  <option value="Esposo e hijos">Esposo e hijos</option>
+                  <option value="Esposa">Esposa</option>
+                  <option value="Esposo">Esposo</option>
+                  <option value="Familia">Familia</option>
+                  <option value="Hijos">Hijos</option>
+                  <option value="Acompañante">Acompañante</option>
+                  <option value="Familia y acompañantes">Familia y acompañantes</option>
+                  <option value="__otro__">Otro texto…</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="table-name">Mesa asignada</label>
+                <input id="table-name" name="tableName" type="text" maxlength="60" placeholder="Ej. Mesa 4">
+              </div>
+              <div id="custom-salutation-field" class="field field-wide" hidden>
+                <label for="custom-salutation">Texto personalizado</label>
+                <input id="custom-salutation" name="customSalutation" type="text" maxlength="100" placeholder="Ej. Hermana y familia">
+              </div>
               <div class="field field-wide">
                 <label for="companions">Acompañantes vinculados</label>
                 <textarea id="companions" name="companions" rows="5" placeholder="Escribe un nombre por línea"></textarea>
@@ -78,9 +105,12 @@
               </div>
             </div>
             <p id="create-error" class="field-error" role="alert"></p>
-            <button class="button button-primary" type="submit">
-              <span class="button-label">Registrar y generar código</span><span class="button-loader" aria-hidden="true"></span>
-            </button>
+            <div class="form-actions">
+              <button id="save-invitation" class="button button-primary" type="submit">
+                <span class="button-label">Registrar y generar código</span><span class="button-loader" aria-hidden="true"></span>
+              </button>
+              <button id="cancel-edit" class="button button-secondary" type="button" hidden>Cancelar edición</button>
+            </div>
           </form>
 
           <div id="generated-code" class="generated-code" hidden>
@@ -97,7 +127,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Invitado</th><th>Código</th><th>Personas</th><th>Estado</th><th>Fecha respuesta</th></tr></thead>
+              <thead><tr><th>Invitado y grupo</th><th>Código</th><th>Mesa</th><th>Respuestas</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
               <tbody id="invitation-table-body"></tbody>
             </table>
           </div>

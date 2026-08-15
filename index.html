@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#17102f">
   <meta name="description" content="Invitación personalizada de cumpleaños">
   <title>Una invitación mágica para ti</title>
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="dns-prefetch" href="//script.google.com">
+  <link rel="preload" href="assets/images/retrato-cumpleanos.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
@@ -17,12 +20,6 @@
   </div>
 
   <main class="app-shell">
-    <a class="admin-access"
-   href="admin.html"
-   aria-label="Ingresar al módulo administrador"
-   title="Administración">
-  ⚙
-</a>
     <section id="screen-intro" class="screen is-active" aria-labelledby="intro-title">
       <div class="mail-scene" aria-hidden="true">
         <div class="spark-trail"></div>
@@ -85,9 +82,12 @@
         <div class="invitation-content">
           <p class="invitation-kicker reveal-piece">Estás cordialmente invitado a celebrar</p>
           <div class="magic-divider reveal-piece" aria-hidden="true"><span></span><b>✦</b><span></span></div>
+          <figure class="honoree-photo reveal-piece">
+            <img src="assets/images/retrato-cumpleanos.webp" width="487" height="722" alt="Retrato de la homenajeada">
+          </figure>
           <h2 id="invitation-title" class="reveal-piece"><span id="event-title">Mi cumpleaños</span></h2>
-          <p class="guest-line reveal-piece">Una noche especial para <strong id="guest-name">ti</strong></p>
-          <p id="event-message" class="invitation-message reveal-piece">Tu compañía hará que esta celebración sea todavía más inolvidable.</p>
+          <p class="guest-line reveal-piece"><span>Sr/a</span> <strong id="guest-name">Nombre</strong> <span id="guest-treatment"></span></p>
+          <p id="event-message" class="invitation-message reveal-piece">La compañía de ustedes hará que esta celebración sea aún más inolvidable.</p>
 
           <div class="event-grid reveal-piece">
             <div class="event-detail">
@@ -159,6 +159,8 @@
       </div>
     </section>
   </main>
+
+  <a class="admin-entry" href="admin.html" aria-label="Ingresar al panel administrativo" title="Administración">⚙</a>
 
   <iframe id="api-bridge" class="api-bridge" title="Conexión segura" hidden></iframe>
   <div id="live-region" class="sr-only" aria-live="polite"></div>

@@ -3,7 +3,7 @@
 .admin-login { min-height: calc(100vh - 108px); display: grid; place-items: center; }
 .admin-login[hidden] { display: none; }
 .admin-login h1, .dashboard h1 { color: inherit; text-shadow: none; }
-.admin-login input, .admin-panel input, .admin-panel textarea {
+.admin-login input, .admin-panel input, .admin-panel textarea, .admin-panel select {
   width: 100%;
   min-height: 50px;
   margin-bottom: 17px;
@@ -14,7 +14,8 @@
   background: #fff;
 }
 .admin-panel textarea { resize: vertical; }
-.admin-login input:focus, .admin-panel input:focus, .admin-panel textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(103,76,157,.1); outline: 0; }
+.admin-panel select { appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%234d3478' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 15px center; }
+.admin-login input:focus, .admin-panel input:focus, .admin-panel textarea:focus, .admin-panel select:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(103,76,157,.1); outline: 0; }
 .dashboard[hidden] { display: none; }
 .dashboard-header { margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--cream); }
 .dashboard-header .eyebrow { color: var(--gold-soft); }
@@ -22,7 +23,7 @@
 .header-actions { display: flex; gap: 9px; flex-wrap: wrap; }
 .button-secondary { border: 1px solid rgba(103,76,157,.28); color: var(--violet-deep); background: #fff; box-shadow: none; text-decoration: none; }
 .button-ghost { border: 1px solid rgba(255,255,255,.25); color: #fff; background: rgba(255,255,255,.08); box-shadow: none; }
-.metric-grid { margin-bottom: 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.metric-grid { margin-bottom: 22px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
 .metric { min-height: 128px; padding: 22px; border: 1px solid rgba(255,255,255,.15); border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; color: #fff; background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(255,255,255,.06)); backdrop-filter: blur(12px); }
 .metric span { color: rgba(255,255,255,.72); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .metric strong { font-family: Georgia, serif; font-size: 2.6rem; font-weight: 500; }
@@ -36,6 +37,7 @@
 .list-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 14px; }
 .field-wide { grid-column: 1 / -1; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .generated-code { margin-top: 23px; padding: 18px; border: 1px dashed #bda467; border-radius: 16px; display: grid; grid-template-columns: 1fr auto; gap: 7px 15px; align-items: center; background: #fff8e7; }
 .generated-code span { color: var(--muted); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .generated-code strong { grid-row: 2; color: var(--violet-deep); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 1.65rem; letter-spacing: .12em; }
@@ -44,16 +46,37 @@
 table { width: 100%; border-collapse: collapse; font-size: .89rem; }
 th, td { padding: 14px 12px; border-bottom: 1px solid #e8e1ec; text-align: left; white-space: nowrap; }
 th { color: var(--muted); font-size: .7rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-td:first-child { min-width: 170px; font-weight: 750; white-space: normal; }
+td:first-child { min-width: 210px; font-weight: 750; white-space: normal; }
 .status { padding: 5px 9px; border-radius: 999px; display: inline-flex; font-size: .7rem; font-weight: 850; letter-spacing: .04em; }
 .status-si { color: #315b47; background: #dcefe5; }
 .status-no { color: #77404b; background: #f2dfe3; }
 .status-pendiente { color: #6f592b; background: #f8edce; }
 .empty-row td { padding: 38px 12px; color: var(--muted); text-align: center; }
+.guest-details summary { cursor: pointer; list-style-position: outside; }
+.guest-details summary > span:first-child { display: inline; }
+.guest-details .treatment { margin-left: 5px; color: var(--muted); font-size: .78rem; font-weight: 600; }
+.guest-details ul { min-width: 220px; margin: 12px 0 0; padding: 11px; border-radius: 12px; list-style: none; background: #f4eff8; }
+.guest-details li { padding: 5px 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #514861; font-size: .8rem; font-weight: 600; }
+.mini-status { padding: 3px 6px; border-radius: 999px; font-size: .63rem; }
+.mini-status-si { color: #315b47; background: #dcefe5; }
+.mini-status-no { color: #77404b; background: #f2dfe3; }
+.mini-status-pendiente { color: #6f592b; background: #f8edce; }
+.table-badge { padding: 6px 9px; border: 1px solid #d8cba9; border-radius: 9px; color: #5b4822; background: #fff8e4; font-weight: 750; }
+.muted { color: var(--muted); font-size: .78rem; font-weight: 500; }
+.count-chips { min-width: 142px; display: flex; flex-wrap: wrap; gap: 5px; }
+.count-chips span { padding: 4px 6px; border-radius: 7px; color: #645b70; background: #ece8ef; font-size: .68rem; font-weight: 800; }
+.count-chips .yes { color: #315b47; background: #dcefe5; }
+.count-chips .no { color: #77404b; background: #f2dfe3; }
+.row-actions { display: flex; gap: 6px; }
+.icon-button { padding: 7px 9px; border: 1px solid #d7cee1; border-radius: 9px; color: var(--violet-deep); background: #fff; font-size: .7rem; font-weight: 800; cursor: pointer; }
+.icon-button:hover { border-color: var(--violet); background: #f2edf8; }
+.icon-button-danger { color: var(--danger); }
+.icon-button:disabled { opacity: .45; cursor: wait; }
+tbody[aria-busy="true"] { opacity: .55; }
 
 @media (max-width: 1050px) {
   .admin-grid { grid-template-columns: 1fr; }
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .metric-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 680px) {
   .admin-shell { padding: 18px; }
