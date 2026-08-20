@@ -89,7 +89,8 @@ function getInvitation_(payload) {
   const code = normalizeCode_(payload.code);
   if (code.length < 6) throw new Error("La clave ingresada no es válida.");
   const cache = CacheService.getScriptCache();
-  const cached = cache.get(invitationCacheKey_(code));
+  const forceRefresh = asBoolean_(payload.forceRefresh);
+  const cached = forceRefresh ? null : cache.get(invitationCacheKey_(code));
   if (cached) return JSON.parse(cached);
 
   const invitation = findInvitationByCode_(code);
@@ -563,7 +564,7 @@ function findInvitationByCode_(code) {
 
 function updateObjectRow_(sheetName, rowNumber, changes) {
   const sheet = sheet_(sheetName);
-  const headers = HEADERS[sheetName];
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
   const range = sheet.getRange(rowNumber, 1, 1, headers.length);
   const row = range.getValues()[0];
   Object.keys(changes).forEach(function (field) {
@@ -576,7 +577,7 @@ function updateObjectRow_(sheetName, rowNumber, changes) {
 function batchUpdateObjectRows_(sheetName, updates) {
   if (!updates.length) return;
   const sheet = sheet_(sheetName);
-  const headers = HEADERS[sheetName];
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
   const firstRow = Math.min.apply(null, updates.map(function (update) { return update.row; }));
   const lastRow = Math.max.apply(null, updates.map(function (update) { return update.row; }));
   const range = sheet.getRange(firstRow, 1, lastRow - firstRow + 1, headers.length);
@@ -604,10 +605,18 @@ function objectRowValues_(sheetName, object) {
 function appendRows_(sheetName, rows) {
   if (!rows.length) return;
   const sheet = sheet_(sheetName);
-  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS[sheetName].length).setValues(rows);
+  const expectedHeaders = HEADERS[sheetName];
+  const actualHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  const normalizedRows = rows.map(function (row) {
+    return actualHeaders.map(function (header) {
+      const sourceColumn = expectedHeaders.indexOf(header);
+      return sourceColumn >= 0 ? row[sourceColumn] : "";
+    });
+  });
+  sheet.getRange(sheet.getLastRow() + 1, 1, normalizedRows.length, actualHeaders.length).setValues(normalizedRows);
 }
 
-function invitationCacheKey_(code) { return "inv-v5-code:" + normalizeCode_(code); }
+function invitationCacheKey_(code) { return "inv-v6-code:" + normalizeCode_(code); }
 function invalidateInvitationCache_(code) {
   if (code) CacheService.getScriptCache().remove(invitationCacheKey_(code));
 }

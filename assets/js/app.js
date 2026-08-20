@@ -38,7 +38,6 @@
     constellationSky: document.getElementById("constellation-sky"),
     constellationCount: document.getElementById("constellation-count"),
     constellationExplanation: document.getElementById("constellation-explanation"),
-    addToCalendar: document.getElementById("add-to-calendar"),
     openLocation: document.getElementById("open-location"),
     downloadPdf: document.getElementById("download-card-pdf"),
     downloadError: document.getElementById("download-error")
@@ -134,7 +133,7 @@
     revealInvitation();
     announce(`Tu invitación sigue abierta durante ${config.session?.guestAccessHours || 12} horas.`);
     try {
-      const refreshed = await window.InvitationApi.request("getInvitation", { code: session.code });
+      const refreshed = await window.InvitationApi.request("getInvitation", { code: session.code, forceRefresh: true });
       const privateState = { tableName: session.invitation.tableName || "" };
       applyInvitation({ ...refreshed, ...privateState }, session.code);
     } catch (_) {
@@ -158,15 +157,8 @@
     document.getElementById("dress-code-wrap").hidden = !event.dressCode;
   }
 
-  function validEventDate(value) {
-    return value && !Number.isNaN(new Date(value).getTime());
-  }
-
   function applyEventActions() {
     const event = config.event;
-    const canAddCalendar = validEventDate(event.calendarStart) && validEventDate(event.calendarEnd);
-    elements.addToCalendar.hidden = !canAddCalendar;
-
     const hasAddress = event.address && !/por confirmar/i.test(event.address);
     const hasPlace = event.place && !/por confirmar/i.test(event.place);
     const locationUrl = event.mapsUrl || ((hasAddress || hasPlace)
@@ -174,37 +166,6 @@
       : "");
     elements.openLocation.hidden = !locationUrl;
     if (locationUrl) elements.openLocation.href = locationUrl;
-  }
-
-  function icsDate(value) {
-    return new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  }
-
-  function icsText(value) {
-    return String(value || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
-  }
-
-  function downloadCalendarEvent() {
-    const event = config.event;
-    if (!validEventDate(event.calendarStart) || !validEventDate(event.calendarEnd)) return;
-    const location = [event.place, event.address].filter(Boolean).join(", ");
-    const uid = `cumpleanos-${state.invitation?.id || "invitacion"}@invitacion-magica`;
-    const content = [
-      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Invitacion Magica//ES", "CALSCALE:GREGORIAN",
-      "BEGIN:VEVENT", `UID:${icsText(uid)}`, `DTSTAMP:${icsDate(new Date())}`,
-      `DTSTART:${icsDate(event.calendarStart)}`, `DTEND:${icsDate(event.calendarEnd)}`,
-      `SUMMARY:${icsText(event.title)}`, `DESCRIPTION:${icsText(event.message)}`,
-      `LOCATION:${icsText(location)}`, "END:VEVENT", "END:VCALENDAR"
-    ].join("\r\n");
-    const url = URL.createObjectURL(new Blob([content], { type: "text/calendar;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "cumpleanos-invitacion.ics";
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-    announce("El evento fue preparado para agregarlo a tu calendario.");
   }
 
   function buildStars() {
@@ -499,7 +460,7 @@
     setLoading(elements.secretForm, true);
     elements.secretError.textContent = "";
     try {
-      const invitation = await window.InvitationApi.request("getInvitation", { code });
+      const invitation = await window.InvitationApi.request("getInvitation", { code, forceRefresh: true });
       applyInvitation(invitation, code);
       revealInvitation();
     } catch (error) {
@@ -512,7 +473,6 @@
   elements.goToResponse.addEventListener("click", () => showScreen("screen-response"));
   elements.accept.addEventListener("click", () => saveMainResponse("SI"));
   elements.decline.addEventListener("click", () => saveMainResponse("NO"));
-  elements.addToCalendar.addEventListener("click", downloadCalendarEvent);
   elements.downloadPdf.addEventListener("click", downloadInvitationPdf);
 
   elements.attendeesForm.addEventListener("submit", async (event) => {
@@ -567,6 +527,26 @@
   }
 
   document.querySelectorAll("[data-guest-logout]").forEach((button) => button.addEventListener("click", closeGuestInvitation));
+
+  let lastActiveRefresh = 0;
+  let activeRefreshPromise = null;
+  async function refreshActiveInvitation() {
+    if (!state.accessCode || !state.invitation || activeRefreshPromise || Date.now() - lastActiveRefresh < 15000) return;
+    lastActiveRefresh = Date.now();
+    activeRefreshPromise = (async () => {
+      try {
+        const refreshed = await window.InvitationApi.request("getInvitation", { code: state.accessCode, forceRefresh: true });
+        const privateState = { tableName: state.invitation.tableName || "" };
+        applyInvitation({ ...refreshed, ...privateState }, state.accessCode);
+      } catch (_) { /* La sesión actual conserva la tarjeta hasta que el usuario decida cerrarla. */ }
+      finally { activeRefreshPromise = null; }
+    })();
+    return activeRefreshPromise;
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshActiveInvitation();
+  });
 
   restoreGuestSession();
 })();

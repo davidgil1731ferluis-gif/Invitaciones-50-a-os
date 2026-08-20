@@ -767,13 +767,30 @@ form label:not(.attendance-options label) {
 .birthday-card-badge { display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 16px; padding: 9px 18px; border: 1px solid rgba(162,95,209,.28); border-radius: 999px; color: #6d3f91; background: linear-gradient(90deg, rgba(239,222,249,.78), rgba(255,249,229,.88), rgba(239,222,249,.78)); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 8px 24px rgba(99,53,135,.1); }
 .birthday-card-badge span { color: #b98738; animation: portraitSparkle 2.2s ease-in-out infinite; }
 .birthday-special-message { max-width: 680px; margin: 4px auto 24px; padding: 18px 22px; border: 1px solid rgba(167,105,206,.2); border-radius: 20px; color: #5a3b71; background: radial-gradient(circle at top, rgba(247,230,255,.88), rgba(255,251,236,.72)); font-family: Georgia, serif; font-size: 1.02rem; font-style: italic; line-height: 1.72; box-shadow: 0 14px 34px rgba(83,44,113,.08); }
-.invitation-card.is-birthday-card { border-color: rgba(217,169,241,.82); background: radial-gradient(circle at 50% 13%, rgba(235,196,255,.88), transparent 32%), radial-gradient(circle at 8% 72%, rgba(202,142,236,.18), transparent 27%), linear-gradient(150deg, #fffdf7 0%, #f8eaff 48%, #fff4d8 100%); box-shadow: 0 35px 100px rgba(62,25,86,.42), 0 0 68px rgba(177,102,222,.32); }
-.invitation-card.is-birthday-card::before { border-color: rgba(151,75,196,.42); box-shadow: inset 0 0 45px rgba(183,106,226,.12); }
-.invitation-card.is-birthday-card::after { border-color: rgba(153,82,199,.34); box-shadow: inset 0 0 35px rgba(179,106,221,.1); }
-.invitation-card.is-birthday-card .portrait-aura { background: radial-gradient(circle, rgba(189,111,238,.42), rgba(224,190,109,.2) 43%, transparent 72%); }
-.invitation-card.is-birthday-card .celebration-name { color: #6d338c; text-shadow: 0 8px 24px rgba(111,51,140,.16); }
-.invitation-card.is-birthday-card .portrait-ring { border-color: #a95bd0; box-shadow: 0 0 0 5px rgba(255,246,219,.92), 0 0 28px rgba(174,86,218,.44); }
-.invitation-card.is-birthday-card .hero-overline { color: #7c3a9e; }
+.invitation-card.is-birthday-card { border-color: rgba(236,203,125,.82); color: #fff8e8; background: radial-gradient(circle at 50% 8%, rgba(164,87,208,.5), transparent 30%), radial-gradient(circle at 8% 75%, rgba(213,181,111,.15), transparent 28%), linear-gradient(155deg, #21103d 0%, #42205f 48%, #170d31 100%); box-shadow: 0 40px 115px rgba(4,2,16,.62), 0 0 82px rgba(170,94,218,.32); }
+.invitation-card.is-birthday-card::before { border-color: rgba(225,190,105,.58); box-shadow: inset 0 0 55px rgba(198,128,235,.16); }
+.invitation-card.is-birthday-card::after { opacity: .9; filter: brightness(1.45); }
+.invitation-card.is-birthday-card .frame-top, .invitation-card.is-birthday-card .frame-bottom { background: linear-gradient(90deg, transparent, rgba(239,205,123,.9), transparent); }
+.invitation-card.is-birthday-card .frame-left, .invitation-card.is-birthday-card .frame-right { background: linear-gradient(180deg, transparent, rgba(239,205,123,.9), transparent); }
+.invitation-card.is-birthday-card .corner { color: #efd38b; text-shadow: 0 0 15px rgba(239,211,139,.75); }
+.invitation-card.is-birthday-card .birthday-card-badge { border-color: rgba(244,216,143,.72); color: #2b1543; background: linear-gradient(90deg, #d9b868, #fff1bd, #d6aa4f); box-shadow: 0 0 28px rgba(226,190,100,.3); }
+.invitation-card.is-birthday-card .invitation-kicker, .invitation-card.is-birthday-card .hero-overline { color: #f2d993; }
+.invitation-card.is-birthday-card .celebration-word { color: #fffaf0; }
+.invitation-card.is-birthday-card .celebration-name { color: #f4d684; text-shadow: 0 7px 26px rgba(242,210,127,.22); }
+.invitation-card.is-birthday-card .milestone-note, .invitation-card.is-birthday-card .invitation-message { color: rgba(255,248,232,.84); }
+.invitation-card.is-birthday-card .portrait-aura { background: radial-gradient(circle, rgba(191,108,237,.62), rgba(224,190,109,.27) 43%, transparent 72%); }
+.invitation-card.is-birthday-card .portrait-ring { border-color: #e6c56f; box-shadow: 0 0 0 5px rgba(80,38,104,.92), 0 0 35px rgba(228,194,105,.48); }
+.invitation-card.is-birthday-card .guest-line { border-color: rgba(235,204,126,.44); color: #fff8e8; background: rgba(255,255,255,.09); box-shadow: inset 0 0 25px rgba(207,151,237,.08); }
+.invitation-card.is-birthday-card .guest-line strong, .invitation-card.is-birthday-card .guest-line #guest-treatment { color: #f4d684; }
+.invitation-card.is-birthday-card .salutation-prefix { color: #fff4d8; }
+.invitation-card.is-birthday-card .birthday-special-message { border-color: rgba(235,204,126,.36); color: #fff6df; background: linear-gradient(145deg, rgba(255,255,255,.11), rgba(210,145,237,.1)); box-shadow: 0 18px 42px rgba(5,2,17,.2); }
+.invitation-card.is-birthday-card .event-detail { border-color: rgba(235,204,126,.32); background: rgba(255,255,255,.08); box-shadow: inset 0 1px rgba(255,255,255,.08); }
+.invitation-card.is-birthday-card .event-detail small { color: #e8c96f; }
+.invitation-card.is-birthday-card .event-detail strong { color: #fff9e9; }
+.invitation-card.is-birthday-card .event-detail span { color: rgba(255,248,232,.76); }
+.invitation-card.is-birthday-card .dress-code { border-color: rgba(235,204,126,.3); color: rgba(255,248,232,.8); background: rgba(255,255,255,.07); }
+.invitation-card.is-birthday-card .dress-code strong { color: #f4d684; }
+.invitation-card.is-birthday-card .button-primary { color: #2b1543; background: linear-gradient(135deg, #f2d88d, #d4aa4f); box-shadow: 0 13px 30px rgba(4,2,16,.3), 0 0 24px rgba(232,197,106,.18); }
 
 .guest-logout-button { position: absolute; z-index: 8; top: 25px; right: 28px; min-height: 36px; padding: 8px 13px; border: 1px solid rgba(103,76,157,.22); border-radius: 999px; color: #625673; background: rgba(255,255,255,.76); font-size: .72rem; font-weight: 750; cursor: pointer; backdrop-filter: blur(8px); transition: transform var(--transition), background var(--transition), border-color var(--transition); }
 .guest-logout-button:hover { border-color: rgba(103,76,157,.46); background: #fff; transform: translateY(-1px); }
@@ -789,7 +806,7 @@ form label:not(.attendance-options label) {
 .constellation-count { margin: 11px auto 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }
 .constellation-count strong { color: var(--violet-deep); font-size: 1.08em; }
 
-.final-action-grid { margin: 8px 0 13px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.final-action-grid { width: min(330px, 100%); margin: 8px auto 13px; display: grid; grid-template-columns: 1fr; gap: 10px; }
 .button-soft { min-height: 48px; border: 1px solid rgba(103,76,157,.22); color: var(--violet-deep); background: rgba(255,255,255,.8); box-shadow: 0 8px 20px rgba(70,48,105,.08); text-decoration: none; }
 .button-soft:hover:not(:disabled) { border-color: rgba(177,139,61,.5); background: #fffaf0; }
 .download-card-button { min-width: min(330px, 100%); }

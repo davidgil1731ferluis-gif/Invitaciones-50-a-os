@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2.8
+# Invitaciones mágicas de cumpleaños · versión 2.9
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -17,7 +17,7 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - El PDF se genera dentro del navegador y ahora integra retrato circular, sello de 50 años y una jerarquía más elegante.
 - Constelación anónima con respaldo inmediato: siempre dibuja las confirmaciones del grupo aunque Apps Script todavía responda con una versión anterior.
 - Revelación animada de la mesa únicamente después de guardar la confirmación.
-- Descarga de evento para calendario y acceso directo a la ubicación.
+- Acceso directo a la ubicación mediante **Cómo llegar**.
 - Mesa asignada incluida automáticamente en el PDF.
 - Módulo gratuito de WhatsApp en el panel administrativo.
 - Mensaje personalizado con enlace, clave secreta y nombre del invitado.
@@ -33,6 +33,9 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Validación conjunta de código e ID antes de guardar cualquier confirmación.
 - Botón para cerrar la invitación y eliminar únicamente la sesión activa.
 - Verificación automática de `SALUDO` y `TIPO_TARJETA` antes de leer o guardar datos.
+- Lectura fresca al abrir o volver a la invitación para reflejar inmediatamente cambios de Sheets.
+- Escritura por nombre de encabezado, aunque las columnas estén en un orden diferente.
+- Tarjeta de cumpleañera con un tema nocturno violeta y dorado claramente diferenciado.
 
 ## Envío gratuito por WhatsApp
 
@@ -59,7 +62,7 @@ assets/images/invitacion-whatsapp.jpg
 
 ## Si ya instalaste una versión anterior
 
-Para actualizar a la versión 2.8, reemplaza todos los archivos de GitHub, copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web. La estructura se comprueba automáticamente y las columnas faltantes se agregan sin borrar ni reemplazar datos existentes.
+Para actualizar a la versión 2.9, reemplaza todos los archivos de GitHub, copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web. La estructura se comprueba automáticamente y las columnas faltantes se agregan sin borrar ni reemplazar datos existentes.
 
 ## Cómo funciona la constelación
 
@@ -71,20 +74,15 @@ Para actualizar a la versión 2.8, reemplaza todos los archivos de GitHub, copia
 - Existe un único detalle morado secreto, sin textos, nombres ni pistas visibles.
 - Para mantener el dibujo legible se muestran máximo 64 estrellas; si hay más confirmados, el contador sí conserva el total real.
 
-## Configurar calendario y ubicación
+## Configurar la ubicación
 
-En `assets/js/config.js`, completa los siguientes campos dentro de `event`:
+En `assets/js/config.js`, completa `mapsUrl` dentro de `event`:
 
 ```js
-calendarStart: "2026-09-12T19:00:00-05:00",
-calendarEnd: "2026-09-12T23:00:00-05:00",
 mapsUrl: ""
 ```
 
-- Usa fecha y hora ISO. Para Colombia conserva `-05:00` al final.
-- `calendarStart` es el inicio y `calendarEnd` es la finalización del evento.
 - `mapsUrl` es opcional. Si queda vacío, la aplicación buscará en Google Maps el lugar y la dirección escritos en la configuración.
-- Si las fechas todavía están vacías, el botón de calendario se ocultará automáticamente para no mostrar una acción que no funciona.
 
 ## Actualizar el proyecto que ya está funcionando
 
