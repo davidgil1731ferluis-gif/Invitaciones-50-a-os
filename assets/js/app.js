@@ -3,7 +3,6 @@
   const screens = [...document.querySelectorAll(".screen")];
   const liveRegion = document.getElementById("live-region");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const guestSessionKey = "birthday-guest-session-v1";
   const state = { invitation: null, mainResponse: null, constellation: null, accessCode: "" };
 
   const elements = {
@@ -14,6 +13,7 @@
     invitationCard: document.getElementById("invitation-card"),
     eventTitleMain: document.getElementById("event-title-main"),
     eventTitleName: document.getElementById("event-title"),
+    heroOverline: document.getElementById("hero-overline"),
     invitationKicker: document.getElementById("invitation-kicker"),
     milestoneNote: document.getElementById("milestone-note"),
     birthdayCardBadge: document.getElementById("birthday-card-badge"),
@@ -38,7 +38,6 @@
     constellationSky: document.getElementById("constellation-sky"),
     constellationCount: document.getElementById("constellation-count"),
     constellationExplanation: document.getElementById("constellation-explanation"),
-    constellationLinaLegend: document.getElementById("constellation-lina-legend"),
     addToCalendar: document.getElementById("add-to-calendar"),
     openLocation: document.getElementById("open-location"),
     downloadPdf: document.getElementById("download-card-pdf"),
@@ -77,49 +76,52 @@
 
   function saveGuestSession() {
     if (!state.accessCode || !state.invitation) return;
-    try {
-      localStorage.setItem(guestSessionKey, JSON.stringify({
-        code: state.accessCode,
-        invitation: state.invitation,
-        expiresAt: Date.now() + guestSessionDurationMs()
-      }));
-    } catch (_) { /* La invitación sigue funcionando aunque el navegador bloquee el almacenamiento. */ }
+    window.GuestSessionStore.save(state.accessCode, state.invitation, guestSessionDurationMs());
   }
 
   function clearGuestSession() {
-    try { localStorage.removeItem(guestSessionKey); } catch (_) { /* Sin almacenamiento disponible. */ }
+    window.GuestSessionStore.clearActive(state.accessCode);
   }
 
   function readGuestSession() {
-    try {
-      const session = JSON.parse(localStorage.getItem(guestSessionKey));
-      if (!session?.code || !session?.invitation || Number(session.expiresAt) <= Date.now()) {
-        clearGuestSession();
-        return null;
-      }
-      return session;
-    } catch (_) {
-      clearGuestSession();
-      return null;
-    }
+    return window.GuestSessionStore.readActive();
+  }
+
+  function normalizeCardType(value) {
+    const normalized = String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase();
+    return ["BIRTHDAY_GIRL", "CUMPLEANERA", "ESPECIAL", "SI", "TRUE"].includes(normalized) ? "BIRTHDAY_GIRL" : "GUEST";
+  }
+
+  function setEventTitle(fullTitle) {
+    const value = String(fullTitle || "Celebrando mis 50 años").trim();
+    const titleParts = value.match(/^(celebrando|celebración de|hoy celebramos)\s+(.+)$/i);
+    elements.eventTitleMain.textContent = titleParts ? titleParts[1] : value;
+    elements.eventTitleName.hidden = !(titleParts && titleParts[2]);
+    elements.eventTitleName.textContent = titleParts ? titleParts[2] : "";
+    document.getElementById("invitation-title").setAttribute("aria-label", value);
   }
 
   function applyInvitation(invitation, code, options = {}) {
     state.invitation = invitation;
     state.accessCode = code || state.accessCode;
-    const birthdayCard = invitation.cardType === "BIRTHDAY_GIRL";
+    const birthdayCard = normalizeCardType(invitation.cardType || invitation.tipoTarjeta) === "BIRTHDAY_GIRL";
+    state.invitation.cardType = birthdayCard ? "BIRTHDAY_GIRL" : "GUEST";
+    const honorific = String(invitation.honorific ?? invitation.saludo ?? "Sr/a").trim();
+    state.invitation.honorific = honorific;
     elements.invitationCard.classList.toggle("is-birthday-card", birthdayCard);
     elements.birthdayCardBadge.hidden = !birthdayCard;
     elements.birthdaySpecialMessage.hidden = !birthdayCard;
     elements.invitationKicker.textContent = birthdayCard ? "Hoy celebramos a quien hace brillar esta historia" : "Estás cordialmente invitado a celebrar";
+    elements.heroOverline.textContent = birthdayCard ? "La protagonista de nuestra noche más especial" : "Una noche escrita en las estrellas";
+    setEventTitle(birthdayCard ? "Hoy celebramos tu vida y tus 50 años" : config.event.title);
     elements.milestoneNote.textContent = birthdayCard
       ? "Tus 50 años: una vida de recuerdos, afecto y luz compartida."
       : "Medio siglo de historias, afecto y momentos inolvidables.";
-    elements.guestHonorific.textContent = birthdayCard ? "Para" : (invitation.honorific || "");
-    elements.guestHonorific.hidden = !birthdayCard && !invitation.honorific;
+    elements.guestHonorific.textContent = birthdayCard ? ["Para ti,", honorific].filter(Boolean).join(" ") : honorific;
+    elements.guestHonorific.hidden = !birthdayCard && !honorific;
     elements.guestName.textContent = invitation.primaryName;
     elements.guestTreatment.textContent = invitation.salutationDetail || "";
-    const fullGreeting = [invitation.honorific, invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
+    const fullGreeting = [honorific, invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
     elements.responseName.textContent = `${fullGreeting}, ¿nos acompañan?`;
     if (options.persist !== false) saveGuestSession();
   }
@@ -146,14 +148,7 @@
 
   function applyEventContent() {
     const event = config.event;
-    const fullTitle = String(event.title || "Celebrando mis 50 años").trim();
-    const titleParts = fullTitle.match(/^(celebrando|celebración de)\s+(.+)$/i);
-    const mainTitle = titleParts ? titleParts[1] : fullTitle;
-    const highlightedTitle = titleParts ? titleParts[2] : "";
-    elements.eventTitleMain.textContent = mainTitle;
-    elements.eventTitleName.hidden = !highlightedTitle;
-    elements.eventTitleName.textContent = highlightedTitle;
-    document.getElementById("invitation-title").setAttribute("aria-label", fullTitle);
+    setEventTitle(event.title);
     document.getElementById("event-message").textContent = event.message;
     document.getElementById("event-date").textContent = event.date;
     document.getElementById("event-time").textContent = event.time;
@@ -338,12 +333,12 @@
       return total + (response === "SI" ? 1 : 0);
     }, 0);
     if (!group.length && state.mainResponse === "SI") confirmedCount = 1;
-    const highlightedGuestConfirmed = group.some((attendee) => {
+    const secretVioletStar = group.some((attendee) => {
       const response = responseById.get(String(attendee.id)) || attendee.response;
       const name = String(attendee.name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
       return response === "SI" && (name === "LINA SOFIA" || name.startsWith("LINA SOFIA "));
     });
-    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64), highlightedGuestConfirmed };
+    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64), secretVioletStar };
   }
 
   function reliableConstellation(serverModel, attendeeResponses) {
@@ -353,7 +348,7 @@
       return {
         confirmedCount: serverCount,
         visibleStars: Math.min(Number(serverModel?.visibleStars || serverCount), 64),
-        highlightedGuestConfirmed: Boolean(serverModel?.highlightedGuestConfirmed || localModel.highlightedGuestConfirmed)
+        secretVioletStar: Boolean(serverModel?.secretVioletStar || serverModel?.highlightedGuestConfirmed || localModel.secretVioletStar)
       };
     }
     return localModel;
@@ -364,7 +359,7 @@
     const visibleStars = Math.min(Number(model?.visibleStars || confirmedCount), 64);
     const random = seededRandom(confirmedCount * 7919 + 2026);
     const points = [];
-    const highlightedIndex = model?.highlightedGuestConfirmed && visibleStars ? Math.min(2, visibleStars - 1) : -1;
+    const highlightedIndex = model?.secretVioletStar && visibleStars ? Math.min(2, visibleStars - 1) : -1;
     elements.constellationSky.replaceChildren();
 
     const lines = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -376,8 +371,7 @@
       const point = { x: 6 + random() * 88, y: 9 + random() * 81 };
       points.push(point);
       const star = document.createElement("span");
-      star.className = `constellation-star${index % 7 === 0 ? " is-accent" : ""}${index === highlightedIndex ? " is-lina-sofia" : ""}`;
-      if (index === highlightedIndex) star.title = "Lina Sofía";
+      star.className = `constellation-star${index % 7 === 0 ? " is-accent" : ""}${index === highlightedIndex ? " is-secret-violet" : ""}`;
       star.style.setProperty("--star-x", `${point.x}%`);
       star.style.setProperty("--star-y", `${point.y}%`);
       star.style.setProperty("--star-size", `${index % 7 === 0 ? 6 : 3 + Math.round(random() * 2)}px`);
@@ -403,7 +397,6 @@
     elements.constellationCount.innerHTML = confirmedCount
       ? `<strong>${confirmedCount}</strong> ${confirmedCount === 1 ? "persona confirmada ilumina" : "personas confirmadas iluminan"} esta celebración.`
       : "La primera estrella de esta celebración aún está por encenderse.";
-    elements.constellationLinaLegend.hidden = highlightedIndex < 0;
     elements.guestConstellation.hidden = false;
   }
 
@@ -461,6 +454,7 @@
     try {
       const result = await window.InvitationApi.request("saveMainResponse", {
         invitationId: state.invitation.id,
+        code: state.accessCode,
         response
       });
       state.mainResponse = response;
@@ -538,6 +532,7 @@
     try {
       const result = await window.InvitationApi.request("saveAttendees", {
         invitationId: state.invitation.id,
+        code: state.accessCode,
         attendees
       });
       if (result.invitation) state.invitation = { ...state.invitation, ...result.invitation };
@@ -554,6 +549,24 @@
       setLoading(elements.attendeesForm, false);
     }
   });
+
+  function closeGuestInvitation() {
+    clearGuestSession();
+    state.invitation = null;
+    state.mainResponse = null;
+    state.constellation = null;
+    state.accessCode = "";
+    elements.secretCode.value = "";
+    elements.secretError.textContent = "";
+    document.body.classList.remove("guest-session-restored");
+    elements.invitationCard.classList.remove("is-birthday-card");
+    applyEventContent();
+    showScreen("screen-access");
+    announce("La invitación se cerró de forma segura. Puedes ingresar otra clave.");
+    setTimeout(() => elements.secretCode.focus({ preventScroll: true }), 120);
+  }
+
+  document.querySelectorAll("[data-guest-logout]").forEach((button) => button.addEventListener("click", closeGuestInvitation));
 
   restoreGuestSession();
 })();

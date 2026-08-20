@@ -25,7 +25,7 @@ function configurarProyecto() {
   );
 }
 
-/** Ejecuta UNA VEZ después de instalar esta actualización. No borra datos. */
+/** Comprobación manual opcional. La aplicación también la ejecuta automáticamente. */
 function actualizarEstructura() {
   const spreadsheet = spreadsheet_();
   Object.keys(HEADERS).forEach(function (sheetName) {
@@ -71,6 +71,7 @@ function getPublicConfig() {
 
 function dispatch(action, payload) {
   payload = payload || {};
+  if (action !== "adminLogin") ensureProjectStructure_();
   switch (action) {
     case "getInvitation": return getInvitation_(payload);
     case "saveMainResponse": return saveMainResponse_(payload);
@@ -109,10 +110,11 @@ function saveMainResponse_(payload) {
   const invitationId = cleanText_(payload.invitationId, 80);
   const response = normalizeResponse_(payload.response);
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(30000);
   try {
     const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
+    requireInvitationAccess_(invitation, payload.code);
     const allAttendees = objects_(SHEETS.ATTENDEES).filter(function (item) { return asBoolean_(item.ACTIVO); });
     const attendees = allAttendees.filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
@@ -152,10 +154,11 @@ function saveAttendees_(payload) {
   });
 
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(30000);
   try {
     const invitation = objects_(SHEETS.INVITATIONS).find(function (item) { return item.ID === invitationId; });
     if (!invitation || !asBoolean_(invitation.ACTIVO)) throw new Error("La invitación ya no está disponible.");
+    requireInvitationAccess_(invitation, payload.code);
     const allAttendees = objects_(SHEETS.ATTENDEES).filter(function (item) { return asBoolean_(item.ACTIVO); });
     const attendees = allAttendees.filter(function (item) {
       return item.INVITACION_ID === invitationId && asBoolean_(item.ACTIVO);
@@ -236,7 +239,7 @@ function adminDashboard_(payload) {
         honorific: honorificModel_(item.SALUDO),
         salutationDetail: item.TRATAMIENTO || "",
         tableName: item.MESA || "",
-        cardType: item.TIPO_TARJETA || "GUEST",
+        cardType: cardTypeModel_(item.TIPO_TARJETA),
         status: item.ESTADO || "PENDIENTE",
         attendeeCount: group.length,
         counts: responseCounts_(group),
@@ -374,8 +377,7 @@ function validateInvitationInput_(payload) {
   const honorific = cleanText_(payload.honorific, 40);
   const salutationDetail = cleanText_(payload.salutationDetail, 100);
   const tableName = cleanText_(payload.tableName, 60);
-  const requestedCardType = cleanText_(payload.cardType, 30).toUpperCase();
-  const cardType = requestedCardType === "BIRTHDAY_GIRL" ? "BIRTHDAY_GIRL" : "GUEST";
+  const cardType = cardTypeModel_(payload.cardType);
   const seen = {};
   const primaryKey = normalizeName_(primaryName);
   const companions = (Array.isArray(payload.companions) ? payload.companions : [])
@@ -400,7 +402,7 @@ function invitationPublicModel_(invitation, attendees) {
     primaryName: invitation.NOMBRE_PRINCIPAL,
     honorific: honorificModel_(invitation.SALUDO),
     salutationDetail: invitation.TRATAMIENTO || "",
-    cardType: invitation.TIPO_TARJETA || "GUEST",
+    cardType: cardTypeModel_(invitation.TIPO_TARJETA),
     status: invitation.ESTADO || "PENDIENTE",
     attendees: group.map(function (item) {
       return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA || "PENDIENTE" };
@@ -416,7 +418,7 @@ function constellationModel_(attendees) {
   return {
     confirmedCount: confirmedCount,
     visibleStars: Math.min(confirmedCount, 64),
-    highlightedGuestConfirmed: confirmed.some(function (item) {
+    secretVioletStar: confirmed.some(function (item) {
       const normalized = normalizeName_(item.NOMBRE);
       return normalized === HIGHLIGHTED_CONSTELLATION_NAME || normalized.indexOf(HIGHLIGHTED_CONSTELLATION_NAME + " ") === 0;
     })
@@ -427,6 +429,18 @@ function honorificModel_(value) {
   const honorific = cleanText_(value, 40);
   if (honorific === "SIN_TRATAMIENTO") return "";
   return honorific || "Sr/a";
+}
+
+function cardTypeModel_(value) {
+  const normalized = cleanText_(value, 30).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+  return ["BIRTHDAY_GIRL", "CUMPLEANERA", "ESPECIAL", "SI", "TRUE"].indexOf(normalized) >= 0 ? "BIRTHDAY_GIRL" : "GUEST";
+}
+
+function requireInvitationAccess_(invitation, code) {
+  const normalized = normalizeCode_(code);
+  if (normalized.length < 6 || normalizeCode_(invitation.CODIGO) !== normalized) {
+    throw new Error("La sesión no corresponde con esta invitación. Ingresa nuevamente tu clave.");
+  }
 }
 
 function responseCounts_(attendees) {
@@ -498,6 +512,24 @@ function ensureSheet_(spreadsheet, name, headers) {
   sheet.setFrozenRows(1);
   sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight("bold").setBackground("#4d3478").setFontColor("#ffffff");
   sheet.autoResizeColumns(1, sheet.getLastColumn());
+}
+
+function ensureProjectStructure_() {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = "schema-v5-ready";
+  if (cache.get(cacheKey)) return;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    if (cache.get(cacheKey)) return;
+    const spreadsheet = spreadsheet_();
+    Object.keys(HEADERS).forEach(function (sheetName) {
+      ensureSheet_(spreadsheet, sheetName, HEADERS[sheetName]);
+    });
+    cache.put(cacheKey, "1", 21600);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function spreadsheet_() {
@@ -575,7 +607,7 @@ function appendRows_(sheetName, rows) {
   sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS[sheetName].length).setValues(rows);
 }
 
-function invitationCacheKey_(code) { return "inv-v4-code:" + normalizeCode_(code); }
+function invitationCacheKey_(code) { return "inv-v5-code:" + normalizeCode_(code); }
 function invalidateInvitationCache_(code) {
   if (code) CacheService.getScriptCache().remove(invitationCacheKey_(code));
 }

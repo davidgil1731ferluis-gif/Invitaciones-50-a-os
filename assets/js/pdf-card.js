@@ -301,7 +301,7 @@
     drawCircularPortrait(ctx, portrait, PAGE_WIDTH / 2, 500);
 
     const greeting = birthdayCard
-      ? ["Para", invitation.primaryName].filter(Boolean).join(" ")
+      ? ["Para ti,", invitation.honorific, invitation.primaryName].filter(Boolean).join(" ")
       : [invitation.honorific, invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
     roundedRect(ctx, 145, 710, 950, 158, 38);
     ctx.fillStyle = "rgba(109,76,157,.055)";

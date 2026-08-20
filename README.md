@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2.7
+# Invitaciones mágicas de cumpleaños · versión 2.8
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -26,9 +26,13 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Sesión del invitado conservada durante 12 horas después de validar su clave (tiempo configurable).
 - Tratamiento antes del nombre seleccionable: Sr/a, Sr., Sra., Señorita, Dr., Dra., Ing. u otro.
 - Tarjeta y PDF especiales para la cumpleañera, seleccionables desde el administrador.
-- Una única estrella morada para Lina Sofía cuando confirme su asistencia.
+- Un destello morado secreto dentro de la constelación, sin panel, leyenda ni identificación visible.
 - Selección, optimización y conservación local de la imagen enviada por WhatsApp.
 - Copia UTF-8 del mensaje para conservar correctamente los emojis.
+- Sesiones aisladas por clave y por pestaña para accesos simultáneos.
+- Validación conjunta de código e ID antes de guardar cualquier confirmación.
+- Botón para cerrar la invitación y eliminar únicamente la sesión activa.
+- Verificación automática de `SALUDO` y `TIPO_TARJETA` antes de leer o guardar datos.
 
 ## Envío gratuito por WhatsApp
 
@@ -55,7 +59,7 @@ assets/images/invitacion-whatsapp.jpg
 
 ## Si ya instalaste una versión anterior
 
-Para actualizar a la versión 2.7, reemplaza todos los archivos de GitHub, copia `apps-script/Code.gs` en `Código.gs`, ejecuta una vez `actualizarEstructura` y publica una nueva versión de la aplicación web. La migración agrega columnas, pero no borra ni reemplaza datos existentes.
+Para actualizar a la versión 2.8, reemplaza todos los archivos de GitHub, copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web. La estructura se comprueba automáticamente y las columnas faltantes se agregan sin borrar ni reemplazar datos existentes.
 
 ## Cómo funciona la constelación
 
@@ -64,7 +68,7 @@ Para actualizar a la versión 2.7, reemplaza todos los archivos de GitHub, copia
 - Muestra inmediatamente las estrellas del grupo que acaba de responder.
 - Cuando Apps Script está actualizado, el contador y el cielo usan el total de todas las invitaciones activas.
 - No muestra nombres, códigos ni grupos de los demás invitados.
-- Cuando Lina Sofía confirma, una única estrella se muestra en morado y una leyenda explica su significado.
+- Existe un único detalle morado secreto, sin textos, nombres ni pistas visibles.
 - Para mantener el dibujo legible se muestran máximo 64 estrellas; si hay más confirmados, el contador sí conserva el total real.
 
 ## Configurar calendario y ubicación
@@ -103,10 +107,9 @@ assets/images/invitacion-whatsapp.jpg
 2. Reemplaza el contenido de `Código.gs` por `apps-script/Code.gs`.
 3. Reemplaza el contenido de `Bridge.html` por `apps-script/Bridge.html`.
 4. Guarda los dos archivos.
-5. En el selector de funciones elige `actualizarEstructura` y pulsa **Ejecutar** una sola vez.
-6. Espera el mensaje **Ejecución completada**.
+5. No necesitas ejecutar una migración: la aplicación comprobará la estructura automáticamente.
 
-`actualizarEstructura` conserva todos los registros. Solo agrega:
+Si decides ejecutar manualmente `actualizarEstructura`, conserva todos los registros y solo agrega:
 
 | Hoja | Columnas nuevas |
 |---|---|
@@ -180,6 +183,7 @@ assets/css/styles.css              Diseño y animaciones
 assets/css/admin.css               Diseño del panel
 assets/js/config.js                Datos del evento y URL del backend
 assets/js/app.js                   Flujo de confirmación
+assets/js/guest-session.js         Sesiones aisladas por código y pestaña
 assets/js/pdf-card.js              Generación local del PDF descargable
 assets/js/admin.js                 Panel, edición y eliminación
 assets/js/api.js                   Conexión optimizada con Apps Script

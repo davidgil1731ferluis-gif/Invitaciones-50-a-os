@@ -41,7 +41,7 @@
       primaryName: invitation.primaryName,
       honorific: invitation.honorific === "SIN_TRATAMIENTO" ? "" : (invitation.honorific || "Sr/a"),
       salutationDetail: invitation.salutationDetail || "",
-      cardType: invitation.cardType || "GUEST",
+      cardType: cardTypeModel(invitation.cardType),
       status: invitation.status,
       attendees: activeAttendees(invitation).map(({ id, name, type, response }) => ({
         id, name, type, response
@@ -67,15 +67,20 @@
       .filter((invitation) => invitation.active)
       .flatMap(activeAttendees)
       .filter((attendee) => attendee.response === "SI").length;
-    const highlightedGuestConfirmed = database.invitations
+    const secretVioletStar = database.invitations
       .filter((invitation) => invitation.active)
       .flatMap(activeAttendees)
       .some((attendee) => attendee.response === "SI" && normalizeName(attendee.name).startsWith("LINA SOFIA"));
-    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64), highlightedGuestConfirmed };
+    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64), secretVioletStar };
   }
 
   function normalizeName(value) {
     return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, " ");
+  }
+
+  function cardTypeModel(value) {
+    const normalized = String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase();
+    return ["BIRTHDAY_GIRL", "CUMPLEANERA", "ESPECIAL", "SI", "TRUE"].includes(normalized) ? "BIRTHDAY_GIRL" : "GUEST";
   }
 
   function normalizeInvitationPayload(payload) {
@@ -87,7 +92,7 @@
       honorific: String(payload.honorific || "").trim(),
       salutationDetail: String(payload.salutationDetail || "").trim(),
       tableName: String(payload.tableName || "").trim(),
-      cardType: payload.cardType === "BIRTHDAY_GIRL" ? "BIRTHDAY_GIRL" : "GUEST",
+      cardType: cardTypeModel(payload.cardType),
       companions
     };
   }
@@ -107,6 +112,7 @@
       if (action === "saveMainResponse") {
         const invitation = database.invitations.find((item) => item.id === payload.invitationId && item.active);
         if (!invitation) throw new Error("La invitación ya no se encuentra disponible.");
+        if (normalizeCode(payload.code) !== normalizeCode(invitation.code)) throw new Error("La sesión no corresponde con esta invitación.");
         invitation.status = payload.response;
         invitation.respondedAt = new Date().toISOString();
         activeAttendees(invitation).forEach((item) => {
@@ -119,6 +125,7 @@
       if (action === "saveAttendees") {
         const invitation = database.invitations.find((item) => item.id === payload.invitationId && item.active);
         if (!invitation) throw new Error("La invitación ya no se encuentra disponible.");
+        if (normalizeCode(payload.code) !== normalizeCode(invitation.code)) throw new Error("La sesión no corresponde con esta invitación.");
         payload.attendees.forEach((selection) => {
           const attendee = activeAttendees(invitation).find((item) => item.id === selection.id);
           if (attendee) attendee.response = selection.response;

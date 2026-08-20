@@ -72,6 +72,9 @@
 
     <section id="screen-invitation" class="screen" aria-labelledby="invitation-title" hidden>
       <article id="invitation-card" class="invitation-card">
+        <button class="guest-logout-button" data-guest-logout type="button" aria-label="Cerrar esta invitación">
+          <span aria-hidden="true">↩</span> Cerrar invitación
+        </button>
         <div class="card-shimmer" aria-hidden="true"></div>
         <div class="card-constellation" aria-hidden="true">
           <span>✦</span><span>✧</span><span>✦</span><span>·</span><span>✧</span>
@@ -107,7 +110,7 @@
               <span class="portrait-spark portrait-spark-three" aria-hidden="true">✦</span>
             </figure>
             <div class="hero-copy">
-              <span class="hero-overline">Una noche escrita en las estrellas</span>
+              <span id="hero-overline" class="hero-overline">Una noche escrita en las estrellas</span>
               <h2 id="invitation-title" class="celebration-title" aria-label="Celebrando mis 50 años">
                 <span id="event-title-main" class="celebration-word">Celebrando</span>
                 <strong id="event-title" class="celebration-name">mis 50 años</strong>
@@ -201,7 +204,6 @@
             <span class="constellation-example-star" aria-hidden="true">✦</span>
             <p><strong>¿Cómo funciona?</strong><span id="constellation-explanation">Cada estrella representa a una persona que confirmó su asistencia. Es anónima: nunca muestra nombres.</span></p>
           </div>
-          <p id="constellation-lina-legend" class="constellation-lina-legend" hidden><span aria-hidden="true">✦</span> La estrella morada representa a Lina Sofía.</p>
           <div id="constellation-sky" class="constellation-sky" aria-hidden="true"></div>
           <p id="constellation-count" class="constellation-count"></p>
         </section>
@@ -221,6 +223,7 @@
           <span class="button-loader" aria-hidden="true"></span>
         </button>
         <p id="download-error" class="field-error download-error" role="alert"></p>
+        <button class="button button-soft farewell-logout-button" data-guest-logout type="button">Cerrar invitación</button>
         <div class="final-stars" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div>
       </div>
     </section>
@@ -236,6 +239,7 @@
   <script src="assets/js/mock-data.js"></script>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/pdf-card.js"></script>
+  <script src="assets/js/guest-session.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>
