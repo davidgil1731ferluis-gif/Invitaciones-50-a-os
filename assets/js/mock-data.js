@@ -7,8 +7,10 @@
       primaryName: "Valentina",
       email: "",
       phone: "",
+      honorific: "Sra.",
       salutationDetail: "Esposo e hijos",
       tableName: "Mesa 4",
+      cardType: "GUEST",
       status: "PENDIENTE",
       active: true,
       respondedAt: null,
@@ -37,7 +39,9 @@
     return {
       id: invitation.id,
       primaryName: invitation.primaryName,
+      honorific: invitation.honorific === "SIN_TRATAMIENTO" ? "" : (invitation.honorific || "Sr/a"),
       salutationDetail: invitation.salutationDetail || "",
+      cardType: invitation.cardType || "GUEST",
       status: invitation.status,
       attendees: activeAttendees(invitation).map(({ id, name, type, response }) => ({
         id, name, type, response
@@ -63,7 +67,15 @@
       .filter((invitation) => invitation.active)
       .flatMap(activeAttendees)
       .filter((attendee) => attendee.response === "SI").length;
-    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64) };
+    const highlightedGuestConfirmed = database.invitations
+      .filter((invitation) => invitation.active)
+      .flatMap(activeAttendees)
+      .some((attendee) => attendee.response === "SI" && normalizeName(attendee.name).startsWith("LINA SOFIA"));
+    return { confirmedCount, visibleStars: Math.min(confirmedCount, 64), highlightedGuestConfirmed };
+  }
+
+  function normalizeName(value) {
+    return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().replace(/\s+/g, " ");
   }
 
   function normalizeInvitationPayload(payload) {
@@ -72,8 +84,10 @@
       primaryName: String(payload.primaryName || "").trim(),
       email: String(payload.email || "").trim(),
       phone: String(payload.phone || "").trim(),
+      honorific: String(payload.honorific || "").trim(),
       salutationDetail: String(payload.salutationDetail || "").trim(),
       tableName: String(payload.tableName || "").trim(),
+      cardType: payload.cardType === "BIRTHDAY_GIRL" ? "BIRTHDAY_GIRL" : "GUEST",
       companions
     };
   }
@@ -112,7 +126,9 @@
         invitation.status = "SI";
         invitation.respondedAt = new Date().toISOString();
         write(database);
-        return { saved: true, tableName: invitation.tableName || "", constellation: constellation(database) };
+        const model = publicInvitation(invitation);
+        model.tableName = invitation.tableName || "";
+        return { saved: true, tableName: invitation.tableName || "", invitation: model, constellation: constellation(database) };
       }
 
       if (action === "adminLogin") {

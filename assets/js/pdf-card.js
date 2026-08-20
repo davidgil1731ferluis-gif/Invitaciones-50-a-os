@@ -250,11 +250,12 @@
     canvas.height = PAGE_HEIGHT;
     const ctx = canvas.getContext("2d", { alpha: false });
     const portrait = await loadImage(imageUrl);
+    const birthdayCard = invitation.cardType === "BIRTHDAY_GIRL";
 
     const night = ctx.createLinearGradient(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
-    night.addColorStop(0, "#120c29");
-    night.addColorStop(.5, "#2a194b");
-    night.addColorStop(1, "#0c091f");
+    night.addColorStop(0, birthdayCard ? "#1d0b35" : "#120c29");
+    night.addColorStop(.5, birthdayCard ? "#4a1e68" : "#2a194b");
+    night.addColorStop(1, birthdayCard ? "#170a2c" : "#0c091f");
     ctx.fillStyle = night;
     ctx.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 
@@ -290,16 +291,18 @@
     ctx.textAlign = "center";
     ctx.fillStyle = "#8f6d31";
     ctx.font = "700 20px Arial, sans-serif";
-    ctx.fillText("UNA NOCHE ESCRITA EN LAS ESTRELLAS", PAGE_WIDTH / 2, 151);
+    ctx.fillText(birthdayCard ? "UNA CARTA ESCRITA ESPECIALMENTE PARA TI" : "UNA NOCHE ESCRITA EN LAS ESTRELLAS", PAGE_WIDTH / 2, 151);
     drawDivider(ctx, 188);
 
     ctx.fillStyle = "#4d3478";
     ctx.font = "italic 500 59px Georgia, serif";
-    centeredText(ctx, event.title || "Celebrando mis 50 años", PAGE_WIDTH / 2, 260, 850, 66, 2);
+    centeredText(ctx, birthdayCard ? "Hoy celebramos tu luz y tus 50 años" : (event.title || "Celebrando mis 50 años"), PAGE_WIDTH / 2, 260, 850, 66, 2);
 
     drawCircularPortrait(ctx, portrait, PAGE_WIDTH / 2, 500);
 
-    const greeting = ["Sr/a", invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
+    const greeting = birthdayCard
+      ? ["Para", invitation.primaryName].filter(Boolean).join(" ")
+      : [invitation.honorific, invitation.primaryName, invitation.salutationDetail].filter(Boolean).join(" ");
     roundedRect(ctx, 145, 710, 950, 158, 38);
     ctx.fillStyle = "rgba(109,76,157,.055)";
     ctx.fill();
@@ -308,14 +311,16 @@
     ctx.stroke();
     ctx.fillStyle = "#9b7837";
     ctx.font = "700 17px Arial, sans-serif";
-    ctx.fillText("ESTA INVITACIÓN FUE CREADA ESPECIALMENTE PARA", PAGE_WIDTH / 2, 754);
+    ctx.fillText(birthdayCard ? "PARA LA PROTAGONISTA DE ESTA HISTORIA" : "ESTA INVITACIÓN FUE CREADA ESPECIALMENTE PARA", PAGE_WIDTH / 2, 754);
     ctx.fillStyle = "#4d3478";
     ctx.font = "italic 700 39px Georgia, serif";
     centeredText(ctx, greeting, PAGE_WIDTH / 2, 812, 850, 46, 2);
 
     ctx.fillStyle = "#665e74";
     ctx.font = "italic 28px Georgia, serif";
-    centeredText(ctx, event.message || "La compañía de ustedes hará que esta celebración sea aún más inolvidable.", PAGE_WIDTH / 2, 930, 790, 40, 2);
+    centeredText(ctx, birthdayCard
+      ? "Gracias por llenar de luz cada recuerdo. Hoy celebramos tu historia, tu alegría y cincuenta años que merecen una noche inolvidable."
+      : (event.message || "La compañía de ustedes hará que esta celebración sea aún más inolvidable."), PAGE_WIDTH / 2, 915, 820, 37, birthdayCard ? 3 : 2);
 
     drawDivider(ctx, 1030);
     drawDetailBox(ctx, 150, 1070, 445, "Fecha y hora", event.date || "Fecha por confirmar", event.time || "Hora por confirmar");
@@ -332,10 +337,10 @@
 
     ctx.fillStyle = "#9b7837";
     ctx.font = "700 21px Arial, sans-serif";
-    ctx.fillText("MEDIO SIGLO DE HISTORIAS · UNA NOCHE PARA RECORDAR", PAGE_WIDTH / 2, 1415);
+    ctx.fillText(birthdayCard ? "CINCUENTA AÑOS DE LUZ · UNA HISTORIA PARA CELEBRAR" : "MEDIO SIGLO DE HISTORIAS · UNA NOCHE PARA RECORDAR", PAGE_WIDTH / 2, 1415);
     ctx.fillStyle = "#776f82";
     ctx.font = "24px Georgia, serif";
-    ctx.fillText("Tu compañía hará que esta celebración brille aún más", PAGE_WIDTH / 2, 1468);
+    ctx.fillText(birthdayCard ? "Que esta noche te recuerde cuánto te queremos" : "Tu compañía hará que esta celebración brille aún más", PAGE_WIDTH / 2, 1468);
     drawStar(ctx, PAGE_WIDTH / 2 - 43, 1530, 10, "#d1ae60");
     drawStar(ctx, PAGE_WIDTH / 2, 1530, 15, "#76529a");
     drawStar(ctx, PAGE_WIDTH / 2 + 43, 1530, 10, "#d1ae60");

@@ -1,4 +1,4 @@
-# Invitaciones mágicas de cumpleaños · versión 2.6
+# Invitaciones mágicas de cumpleaños · versión 2.7
 
 Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta versión añade:
 
@@ -23,6 +23,12 @@ Sitio para GitHub Pages conectado con Google Apps Script y Google Sheets. Esta v
 - Mensaje personalizado con enlace, clave secreta y nombre del invitado.
 - Imagen promocional optimizada para descargar o compartir desde el teléfono.
 - Apertura directa del chat del destinatario con el texto ya diligenciado.
+- Sesión del invitado conservada durante 12 horas después de validar su clave (tiempo configurable).
+- Tratamiento antes del nombre seleccionable: Sr/a, Sr., Sra., Señorita, Dr., Dra., Ing. u otro.
+- Tarjeta y PDF especiales para la cumpleañera, seleccionables desde el administrador.
+- Una única estrella morada para Lina Sofía cuando confirme su asistencia.
+- Selección, optimización y conservación local de la imagen enviada por WhatsApp.
+- Copia UTF-8 del mensaje para conservar correctamente los emojis.
 
 ## Envío gratuito por WhatsApp
 
@@ -35,7 +41,7 @@ En la tabla del panel aparece un botón **WhatsApp** para cada invitación que t
 
 El remitente siempre es la cuenta de WhatsApp que esté abierta en el teléfono o computador. Elegir otra cuenta remitente o enviar sin intervención requiere WhatsApp Business Cloud API y no pertenece al modo gratuito.
 
-Desde **Configurar mensaje** puedes cambiar el prefijo del país, el enlace público y la plantilla. La configuración se guarda únicamente en ese dispositivo. La plantilla admite:
+Desde **Configurar mensaje** puedes cambiar el prefijo del país, el enlace público, la plantilla y la imagen. La configuración se guarda únicamente en ese dispositivo. La imagen elegida se optimiza automáticamente y no se sube a GitHub ni a Sheets. La plantilla admite:
 
 - `{{LINK}}`: enlace de la página.
 - `{{CLAVE}}`: código secreto de la invitación.
@@ -49,7 +55,7 @@ assets/images/invitacion-whatsapp.jpg
 
 ## Si ya instalaste una versión anterior
 
-Para actualizar a la versión 2.6, reemplaza todos los archivos de GitHub. No se agregan columnas a Sheets. Para garantizar que la constelación muestre el total global de todas las invitaciones, también copia `apps-script/Code.gs` en `Código.gs` y publica una nueva versión de la aplicación web.
+Para actualizar a la versión 2.7, reemplaza todos los archivos de GitHub, copia `apps-script/Code.gs` en `Código.gs`, ejecuta una vez `actualizarEstructura` y publica una nueva versión de la aplicación web. La migración agrega columnas, pero no borra ni reemplaza datos existentes.
 
 ## Cómo funciona la constelación
 
@@ -57,7 +63,8 @@ Para actualizar a la versión 2.6, reemplaza todos los archivos de GitHub. No se
 - Cada estrella representa a una persona confirmada, incluyendo al invitado principal y sus acompañantes.
 - Muestra inmediatamente las estrellas del grupo que acaba de responder.
 - Cuando Apps Script está actualizado, el contador y el cielo usan el total de todas las invitaciones activas.
-- Es completamente anónima: no muestra nombres, códigos ni grupos.
+- No muestra nombres, códigos ni grupos de los demás invitados.
+- Cuando Lina Sofía confirma, una única estrella se muestra en morado y una leyenda explica su significado.
 - Para mantener el dibujo legible se muestran máximo 64 estrellas; si hay más confirmados, el contador sí conserva el total real.
 
 ## Configurar calendario y ubicación
@@ -103,8 +110,7 @@ assets/images/invitacion-whatsapp.jpg
 
 | Hoja | Columnas nuevas |
 |---|---|
-| `INVITACIONES` | `TRATAMIENTO`, `MESA` |
-| `ASISTENTES` | `MESA` |
+| `INVITACIONES` | `SALUDO`, `TIPO_TARJETA` |
 
 No vuelvas a ejecutar `configurarProyecto` para esta actualización: tus credenciales y el vínculo con Sheets ya están guardados.
 
@@ -137,8 +143,10 @@ Al registrar o editar una invitación puedes indicar:
 
 - Nombre del invitado principal.
 - Correo y teléfono opcionales.
+- Tratamiento antes del nombre.
 - Texto después del nombre.
 - Mesa asignada.
+- Diseño general o tarjeta especial para la cumpleañera.
 - Acompañantes, uno por línea.
 
 El panel muestra dos tipos de totales:

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17102f">
   <meta name="description" content="Invitación personalizada de cumpleaños">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <title>Una invitación mágica para ti</title>
   <link rel="preconnect" href="https://script.google.com">
   <link rel="dns-prefetch" href="//script.google.com">
@@ -84,7 +86,12 @@
         <div class="corner corner-br" aria-hidden="true">✦</div>
 
         <div class="invitation-content">
-          <p class="invitation-kicker reveal-piece">Estás cordialmente invitado a celebrar</p>
+          <div id="birthday-card-badge" class="birthday-card-badge reveal-piece" hidden>
+            <span aria-hidden="true">✦</span>
+            <strong>Una carta solo para la protagonista</strong>
+            <span aria-hidden="true">✦</span>
+          </div>
+          <p id="invitation-kicker" class="invitation-kicker reveal-piece">Estás cordialmente invitado a celebrar</p>
           <div class="magic-divider reveal-piece" aria-hidden="true"><span></span><b>✦</b><span></span></div>
           <div class="invitation-hero reveal-piece">
             <figure class="honoree-portrait">
@@ -105,11 +112,12 @@
                 <span id="event-title-main" class="celebration-word">Celebrando</span>
                 <strong id="event-title" class="celebration-name">mis 50 años</strong>
               </h2>
-              <p class="milestone-note">Medio siglo de historias, afecto y momentos inolvidables.</p>
+              <p id="milestone-note" class="milestone-note">Medio siglo de historias, afecto y momentos inolvidables.</p>
               <span class="title-flourish" aria-hidden="true"><i></i><b>✦</b><i></i></span>
             </div>
           </div>
-          <p class="guest-line reveal-piece"><span class="salutation-prefix">Sr/a</span> <strong id="guest-name">Nombre</strong> <span id="guest-treatment"></span></p>
+          <p class="guest-line reveal-piece"><span id="guest-honorific" class="salutation-prefix">Sr/a</span> <strong id="guest-name">Nombre</strong> <span id="guest-treatment"></span></p>
+          <p id="birthday-special-message" class="birthday-special-message reveal-piece" hidden>Hoy la invitación también quiere abrazarte: gracias por llenar de luz cada historia y por regalarnos cincuenta años que merecen celebrarse de una forma inolvidable.</p>
           <p id="event-message" class="invitation-message reveal-piece">La compañía de ustedes hará que esta celebración sea aún más inolvidable.</p>
 
           <div class="event-grid reveal-piece">
@@ -193,6 +201,7 @@
             <span class="constellation-example-star" aria-hidden="true">✦</span>
             <p><strong>¿Cómo funciona?</strong><span id="constellation-explanation">Cada estrella representa a una persona que confirmó su asistencia. Es anónima: nunca muestra nombres.</span></p>
           </div>
+          <p id="constellation-lina-legend" class="constellation-lina-legend" hidden><span aria-hidden="true">✦</span> La estrella morada representa a Lina Sofía.</p>
           <div id="constellation-sky" class="constellation-sky" aria-hidden="true"></div>
           <p id="constellation-count" class="constellation-count"></p>
         </section>

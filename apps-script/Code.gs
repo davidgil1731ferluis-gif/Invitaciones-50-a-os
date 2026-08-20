@@ -6,13 +6,14 @@ const SHEETS = Object.freeze({
 });
 
 const HEADERS = Object.freeze({
-  INVITACIONES: ["ID", "CODIGO", "NOMBRE_PRINCIPAL", "EMAIL", "TELEFONO", "ESTADO", "FECHA_RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN", "TRATAMIENTO", "MESA"],
+  INVITACIONES: ["ID", "CODIGO", "NOMBRE_PRINCIPAL", "EMAIL", "TELEFONO", "ESTADO", "FECHA_RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN", "TRATAMIENTO", "MESA", "SALUDO", "TIPO_TARJETA"],
   ASISTENTES: ["ID", "INVITACION_ID", "NOMBRE", "TIPO", "RESPUESTA", "ACTIVO", "CREADO_EN", "ACTUALIZADO_EN", "MESA"],
   RESPUESTAS: ["ID", "INVITACION_ID", "RESPUESTA_PRINCIPAL", "TOTAL_SI", "TOTAL_NO", "FECHA"],
   ACCESOS: ["ID", "INVITACION_ID", "RESULTADO", "FECHA"]
 });
 
-const PUBLIC_CACHE_SECONDS = 300;
+const PUBLIC_CACHE_SECONDS = 1800;
+const HIGHLIGHTED_CONSTELLATION_NAME = "LINA SOFIA";
 
 /** Solo para configurar un proyecto nuevo o cambiar credenciales. */
 function configurarProyecto() {
@@ -92,7 +93,7 @@ function getInvitation_(payload) {
 
   const invitation = findInvitationByCode_(code);
   if (!invitation || !asBoolean_(invitation.ACTIVO)) {
-    logAccess_(invitation ? invitation.ID : "", "CLAVE_NO_VALIDA");
+    logAccessOnce_(invitation ? invitation.ID : "", "CLAVE_NO_VALIDA", code);
     throw new Error("No encontramos una invitación activa con esa clave.");
   }
   const attendees = objects_(SHEETS.ATTENDEES).filter(function (item) {
@@ -100,7 +101,7 @@ function getInvitation_(payload) {
   });
   const model = invitationPublicModel_(invitation, attendees);
   cache.put(invitationCacheKey_(code), JSON.stringify(model), PUBLIC_CACHE_SECONDS);
-  logAccess_(invitation.ID, "ACCESO_CORRECTO");
+  logAccessOnce_(invitation.ID, "ACCESO_CORRECTO", code);
   return model;
 }
 
@@ -175,11 +176,16 @@ function saveAttendees_(payload) {
     });
     batchUpdateObjectRows_(SHEETS.ATTENDEES, attendeeChanges);
     updateObjectRow_(SHEETS.INVITATIONS, invitation._row, { ESTADO: "SI", FECHA_RESPUESTA: now, ACTUALIZADO_EN: now });
+    invitation.ESTADO = "SI";
+    invitation.FECHA_RESPUESTA = now;
     appendResponseSnapshot_(invitationId, "SI", attendees);
     invalidateInvitationCache_(invitation.CODIGO);
+    const publicInvitation = invitationPublicModel_(invitation, attendees);
+    publicInvitation.tableName = invitation.MESA || "";
     return {
       saved: true,
       tableName: invitation.MESA || "",
+      invitation: publicInvitation,
       constellation: constellationModel_(allAttendees)
     };
   } finally {
@@ -227,8 +233,10 @@ function adminDashboard_(payload) {
         primaryName: item.NOMBRE_PRINCIPAL,
         email: item.EMAIL || "",
         phone: item.TELEFONO || "",
+        honorific: honorificModel_(item.SALUDO),
         salutationDetail: item.TRATAMIENTO || "",
         tableName: item.MESA || "",
+        cardType: item.TIPO_TARJETA || "GUEST",
         status: item.ESTADO || "PENDIENTE",
         attendeeCount: group.length,
         counts: responseCounts_(group),
@@ -260,7 +268,8 @@ function adminCreateInvitation_(payload) {
       ID: invitationId, CODIGO: code, NOMBRE_PRINCIPAL: data.primaryName,
       EMAIL: data.email, TELEFONO: data.phone, ESTADO: "PENDIENTE",
       FECHA_RESPUESTA: "", ACTIVO: true, CREADO_EN: now, ACTUALIZADO_EN: now,
-      TRATAMIENTO: data.salutationDetail, MESA: data.tableName
+      TRATAMIENTO: data.salutationDetail, MESA: data.tableName,
+      SALUDO: data.honorific, TIPO_TARJETA: data.cardType
     });
     const rows = [data.primaryName].concat(data.companions).map(function (name, index) {
       return objectRowValues_(SHEETS.ATTENDEES, {
@@ -288,7 +297,8 @@ function adminUpdateInvitation_(payload) {
     const now = new Date();
     updateObjectRow_(SHEETS.INVITATIONS, invitation._row, {
       NOMBRE_PRINCIPAL: data.primaryName, EMAIL: data.email, TELEFONO: data.phone,
-      TRATAMIENTO: data.salutationDetail, MESA: data.tableName, ACTUALIZADO_EN: now
+      TRATAMIENTO: data.salutationDetail, MESA: data.tableName,
+      SALUDO: data.honorific, TIPO_TARJETA: data.cardType, ACTUALIZADO_EN: now
     });
 
     const group = objects_(SHEETS.ATTENDEES).filter(function (item) {
@@ -361,8 +371,11 @@ function validateInvitationInput_(payload) {
   const primaryName = cleanText_(payload.primaryName, 120);
   const email = cleanText_(payload.email, 160);
   const phone = cleanText_(payload.phone, 40);
+  const honorific = cleanText_(payload.honorific, 40);
   const salutationDetail = cleanText_(payload.salutationDetail, 100);
   const tableName = cleanText_(payload.tableName, 60);
+  const requestedCardType = cleanText_(payload.cardType, 30).toUpperCase();
+  const cardType = requestedCardType === "BIRTHDAY_GIRL" ? "BIRTHDAY_GIRL" : "GUEST";
   const seen = {};
   const primaryKey = normalizeName_(primaryName);
   const companions = (Array.isArray(payload.companions) ? payload.companions : [])
@@ -375,7 +388,7 @@ function validateInvitationInput_(payload) {
     });
   if (primaryName.length < 2) throw new Error("Ingresa el nombre del invitado principal.");
   if (companions.length > 20) throw new Error("Una invitación puede contener máximo 20 acompañantes.");
-  return { primaryName: primaryName, email: email, phone: phone, salutationDetail: salutationDetail, tableName: tableName, companions: companions };
+  return { primaryName: primaryName, email: email, phone: phone, honorific: honorific, salutationDetail: salutationDetail, tableName: tableName, cardType: cardType, companions: companions };
 }
 
 function invitationPublicModel_(invitation, attendees) {
@@ -385,7 +398,9 @@ function invitationPublicModel_(invitation, attendees) {
   return {
     id: invitation.ID,
     primaryName: invitation.NOMBRE_PRINCIPAL,
+    honorific: honorificModel_(invitation.SALUDO),
     salutationDetail: invitation.TRATAMIENTO || "",
+    cardType: invitation.TIPO_TARJETA || "GUEST",
     status: invitation.ESTADO || "PENDIENTE",
     attendees: group.map(function (item) {
       return { id: item.ID, name: item.NOMBRE, type: item.TIPO, response: item.RESPUESTA || "PENDIENTE" };
@@ -394,13 +409,24 @@ function invitationPublicModel_(invitation, attendees) {
 }
 
 function constellationModel_(attendees) {
-  const confirmedCount = attendees.filter(function (item) {
+  const confirmed = attendees.filter(function (item) {
     return asBoolean_(item.ACTIVO) && String(item.RESPUESTA || "").toUpperCase() === "SI";
-  }).length;
+  });
+  const confirmedCount = confirmed.length;
   return {
     confirmedCount: confirmedCount,
-    visibleStars: Math.min(confirmedCount, 64)
+    visibleStars: Math.min(confirmedCount, 64),
+    highlightedGuestConfirmed: confirmed.some(function (item) {
+      const normalized = normalizeName_(item.NOMBRE);
+      return normalized === HIGHLIGHTED_CONSTELLATION_NAME || normalized.indexOf(HIGHLIGHTED_CONSTELLATION_NAME + " ") === 0;
+    })
   };
+}
+
+function honorificModel_(value) {
+  const honorific = cleanText_(value, 40);
+  if (honorific === "SIN_TRATAMIENTO") return "";
+  return honorific || "Sr/a";
 }
 
 function responseCounts_(attendees) {
@@ -426,6 +452,14 @@ function appendResponseSnapshot_(invitationId, primaryResponse, attendees) {
 
 function logAccess_(invitationId, result) {
   appendObjectRow_(SHEETS.ACCESS, { ID: Utilities.getUuid(), INVITACION_ID: invitationId || "", RESULTADO: result, FECHA: new Date() });
+}
+
+function logAccessOnce_(invitationId, result, code) {
+  const cache = CacheService.getScriptCache();
+  const key = "access-log:" + result + ":" + normalizeCode_(code);
+  if (cache.get(key)) return;
+  logAccess_(invitationId, result);
+  cache.put(key, "1", 600);
 }
 
 function requireAdmin_(token) {
@@ -541,14 +575,16 @@ function appendRows_(sheetName, rows) {
   sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, HEADERS[sheetName].length).setValues(rows);
 }
 
-function invitationCacheKey_(code) { return "inv-v3-code:" + normalizeCode_(code); }
+function invitationCacheKey_(code) { return "inv-v4-code:" + normalizeCode_(code); }
 function invalidateInvitationCache_(code) {
   if (code) CacheService.getScriptCache().remove(invitationCacheKey_(code));
 }
 function normalizeCode_(value) {
   return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
 }
-function normalizeName_(value) { return cleanText_(value, 120).toLowerCase().replace(/\s+/g, " "); }
+function normalizeName_(value) {
+  return cleanText_(value, 120).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ");
+}
 function normalizeUsername_(value) {
   return String(value || "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 60);
 }

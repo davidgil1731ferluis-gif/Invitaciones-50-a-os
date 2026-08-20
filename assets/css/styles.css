@@ -124,6 +124,7 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 .screen[hidden] { display: none !important; }
+.birthday-card-badge[hidden], .birthday-special-message[hidden], .constellation-lina-legend[hidden] { display: none !important; }
 
 .glass-card {
   width: min(620px, 100%);
@@ -760,7 +761,24 @@ form label:not(.attendance-options label) {
 }
 .constellation-sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent, rgba(5,2,16,.22)); pointer-events: none; }
 .constellation-star { position: absolute; z-index: 2; left: var(--star-x); top: var(--star-y); width: var(--star-size); height: var(--star-size); border-radius: 50%; background: #fff7d7; box-shadow: 0 0 5px #f3d98d, 0 0 13px rgba(224,190,109,.62); opacity: 0; transform: scale(.2); animation: constellationBirth .72s ease-out var(--star-delay) forwards, constellationTwinkle 2.8s ease-in-out calc(var(--star-delay) + .8s) infinite alternate; }
-.constellation-star.is-accent { background: #cbb0eb; box-shadow: 0 0 6px #cbb0eb, 0 0 16px rgba(145,104,190,.72); }
+.constellation-star.is-accent { background: #f5dda2; box-shadow: 0 0 6px #f5dda2, 0 0 16px rgba(224,190,109,.72); }
+.constellation-star.is-lina-sofia { width: 9px !important; height: 9px !important; background: #b86cff; box-shadow: 0 0 8px #d9a7ff, 0 0 21px rgba(164,79,236,.95), 0 0 34px rgba(112,47,173,.72); }
+
+.constellation-lina-legend { display: inline-flex; align-items: center; gap: 9px; margin: 12px auto 0; padding: 8px 14px; border: 1px solid rgba(191,126,242,.28); border-radius: 999px; color: #ddbcfb; background: rgba(103,44,147,.16); font-size: .82rem; }
+.constellation-lina-legend span { color: #bd6aff; text-shadow: 0 0 12px #b65cff; }
+
+.birthday-card-badge { display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 16px; padding: 9px 18px; border: 1px solid rgba(162,95,209,.28); border-radius: 999px; color: #6d3f91; background: linear-gradient(90deg, rgba(239,222,249,.78), rgba(255,249,229,.88), rgba(239,222,249,.78)); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 8px 24px rgba(99,53,135,.1); }
+.birthday-card-badge span { color: #b98738; animation: portraitSparkle 2.2s ease-in-out infinite; }
+.birthday-special-message { max-width: 680px; margin: 4px auto 24px; padding: 18px 22px; border: 1px solid rgba(167,105,206,.2); border-radius: 20px; color: #5a3b71; background: radial-gradient(circle at top, rgba(247,230,255,.88), rgba(255,251,236,.72)); font-family: Georgia, serif; font-size: 1.02rem; font-style: italic; line-height: 1.72; box-shadow: 0 14px 34px rgba(83,44,113,.08); }
+.invitation-card.is-birthday-card { background: radial-gradient(circle at 50% 16%, rgba(247,227,255,.95), transparent 34%), linear-gradient(150deg, #fffdf7 0%, #fbf2ff 48%, #fff8e5 100%); box-shadow: 0 32px 90px rgba(62,25,86,.34), 0 0 50px rgba(177,102,222,.2); }
+.invitation-card.is-birthday-card::after { border-color: rgba(153,82,199,.34); box-shadow: inset 0 0 35px rgba(179,106,221,.1); }
+.invitation-card.is-birthday-card .portrait-aura { background: radial-gradient(circle, rgba(189,111,238,.42), rgba(224,190,109,.2) 43%, transparent 72%); }
+.invitation-card.is-birthday-card .celebration-name { color: #6d338c; text-shadow: 0 8px 24px rgba(111,51,140,.16); }
+
+@media (max-width: 600px) {
+  .birthday-card-badge { max-width: 92%; padding: 8px 12px; font-size: .62rem; line-height: 1.35; }
+  .birthday-special-message { padding: 15px 16px; font-size: .94rem; }
+}
 .constellation-lines { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; opacity: 0; animation: constellationLines 1.4s ease-out .8s forwards; }
 .constellation-lines line { stroke: rgba(239, 216, 153, .23); stroke-width: .7; stroke-dasharray: 2.2 2.8; }
 .constellation-count { margin: 11px auto 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }

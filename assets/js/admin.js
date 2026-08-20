@@ -5,7 +5,8 @@
     dashboard: null,
     dashboardPromise: null,
     whatsappInvitation: null,
-    shareImageFile: null
+    shareImageFile: null,
+    shareImageUrl: null
   };
   const loginSection = document.getElementById("admin-login");
   const dashboard = document.getElementById("admin-dashboard");
@@ -13,13 +14,20 @@
   const invitationForm = document.getElementById("create-invitation-form");
   const tableBody = document.getElementById("invitation-table-body");
   const salutationSelect = document.getElementById("salutation-detail");
+  const honorificSelect = document.getElementById("honorific");
   const customSalutationField = document.getElementById("custom-salutation-field");
   const customSalutation = document.getElementById("custom-salutation");
+  const customHonorificField = document.getElementById("custom-honorific-field");
+  const customHonorific = document.getElementById("custom-honorific");
   const liveRegion = document.getElementById("admin-live-region");
   const whatsappDialog = document.getElementById("whatsapp-dialog");
   const whatsappSettingsForm = document.getElementById("whatsapp-settings");
   const whatsappStorageKey = "birthday-whatsapp-settings-v1";
+  const whatsappImageDatabase = "birthday-whatsapp-assets-v1";
   const predefinedSalutations = [...salutationSelect.options]
+    .map((option) => option.value)
+    .filter((value) => value && value !== "__otro__");
+  const predefinedHonorifics = [...honorificSelect.options]
     .map((option) => option.value)
     .filter((value) => value && value !== "__otro__");
 
@@ -117,13 +125,15 @@
   }
 
   function invitationRow(item) {
+    const heading = [item.honorific, item.primaryName].filter(Boolean).join(" ");
     const treatment = item.salutationDetail ? `<span class="treatment">${escapeHtml(item.salutationDetail)}</span>` : "";
+    const special = item.cardType === "BIRTHDAY_GIRL" ? '<span class="special-card-chip">Tarjeta cumpleañera</span>' : "";
     const counts = item.counts || { yes: 0, no: 0, pending: 0 };
     return `
       <tr>
         <td>
           <details class="guest-details">
-            <summary><span>${escapeHtml(item.primaryName)}</span>${treatment}</summary>
+            <summary><span>${escapeHtml(heading)}</span>${treatment}${special}</summary>
             ${item.phone ? `<small class="guest-phone">${escapeHtml(item.phone)}</small>` : '<small class="guest-phone muted">Sin teléfono</small>'}
             <ul>${(item.attendees || []).map(attendeeMarkup).join("")}</ul>
           </details>
@@ -188,8 +198,18 @@
     customSalutation.required = custom;
   }
 
+  function updateCustomHonorificVisibility() {
+    const custom = honorificSelect.value === "__otro__";
+    customHonorificField.hidden = !custom;
+    customHonorific.required = custom;
+  }
+
   function selectedSalutation() {
     return salutationSelect.value === "__otro__" ? customSalutation.value.trim() : salutationSelect.value;
+  }
+
+  function selectedHonorific() {
+    return honorificSelect.value === "__otro__" ? customHonorific.value.trim() : honorificSelect.value;
   }
 
   function setSalutation(value) {
@@ -206,6 +226,20 @@
     updateCustomSalutationVisibility();
   }
 
+  function setHonorific(value) {
+    if (!value) {
+      honorificSelect.value = "";
+      customHonorific.value = "";
+    } else if (predefinedHonorifics.includes(value)) {
+      honorificSelect.value = value;
+      customHonorific.value = "";
+    } else {
+      honorificSelect.value = "__otro__";
+      customHonorific.value = value;
+    }
+    updateCustomHonorificVisibility();
+  }
+
   function resetInvitationForm() {
     invitationForm.reset();
     invitationForm.invitationId.value = "";
@@ -215,6 +249,7 @@
     document.getElementById("cancel-edit").hidden = true;
     document.getElementById("create-error").textContent = "";
     setSalutation("");
+    setHonorific("Sr/a");
   }
 
   function startEdit(id) {
@@ -225,11 +260,13 @@
     invitationForm.email.value = item.email || "";
     invitationForm.phone.value = item.phone || "";
     invitationForm.tableName.value = item.tableName || "";
+    invitationForm.cardType.value = item.cardType || "GUEST";
     invitationForm.companions.value = (item.attendees || [])
       .filter((attendee) => attendee.type !== "PRINCIPAL")
       .map((attendee) => attendee.name)
       .join("\n");
     setSalutation(item.salutationDetail || "");
+    setHonorific(item.honorific || "SIN_TRATAMIENTO");
     document.getElementById("form-eyebrow").textContent = "Editar invitación";
     document.getElementById("create-title").textContent = item.primaryName;
     document.querySelector("#save-invitation .button-label").textContent = "Guardar cambios";
@@ -239,10 +276,16 @@
   }
 
   async function copyText(text) {
-    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    const value = String(text || "");
+    if (navigator.clipboard?.write && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ "text/plain": new Blob([value], { type: "text/plain;charset=utf-8" }) })]);
+    } else if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(value);
     else {
       const area = document.createElement("textarea");
-      area.value = text;
+      area.value = value;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
       document.body.appendChild(area);
       area.select();
       document.execCommand("copy");
@@ -250,17 +293,88 @@
     }
   }
 
-  async function getShareImageFile() {
+  function openWhatsappImageDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(whatsappImageDatabase, 1);
+      request.onupgradeneeded = () => request.result.createObjectStore("assets");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function imageStore(action, value) {
+    const database = await openWhatsappImageDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction("assets", action === "get" ? "readonly" : "readwrite");
+      const store = transaction.objectStore("assets");
+      const request = action === "get" ? store.get("whatsapp-image") : action === "delete" ? store.delete("whatsapp-image") : store.put(value, "whatsapp-image");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      transaction.oncomplete = () => database.close();
+    });
+  }
+
+  async function optimizeWhatsappImage(file) {
+    if (!file || !file.type.startsWith("image/")) throw new Error("Selecciona una imagen PNG, JPG o WebP.");
+    let source;
+    let temporaryUrl = "";
+    if (typeof createImageBitmap === "function") source = await createImageBitmap(file);
+    else {
+      temporaryUrl = URL.createObjectURL(file);
+      source = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("No fue posible leer la imagen seleccionada."));
+        image.src = temporaryUrl;
+      });
+    }
+    const scale = Math.min(1, 1600 / Math.max(source.width, source.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(source.width * scale));
+    canvas.height = Math.max(1, Math.round(source.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(source, 0, 0, canvas.width, canvas.height);
+    if (typeof source.close === "function") source.close();
+    if (temporaryUrl) URL.revokeObjectURL(temporaryUrl);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", .9));
+    if (!blob) throw new Error("No fue posible preparar la imagen.");
+    return { blob, name: file.name.replace(/\.[^.]+$/, "") + ".jpg" };
+  }
+
+  function applyWhatsappImage(blob, name) {
+    if (state.shareImageUrl) URL.revokeObjectURL(state.shareImageUrl);
+    state.shareImageFile = new File([blob], name || "invitacion-50-anos.jpg", { type: blob.type || "image/jpeg" });
+    state.shareImageUrl = URL.createObjectURL(blob);
+    document.getElementById("whatsapp-preview-image").src = state.shareImageUrl;
+    document.getElementById("whatsapp-settings-image-preview").src = state.shareImageUrl;
+    const download = document.getElementById("download-whatsapp-image");
+    download.href = state.shareImageUrl;
+    download.download = state.shareImageFile.name;
+  }
+
+  async function loadWhatsappImage() {
     if (state.shareImageFile) return state.shareImageFile;
+    try {
+      const stored = await imageStore("get");
+      if (stored?.blob) {
+        applyWhatsappImage(stored.blob, stored.name);
+        return state.shareImageFile;
+      }
+    } catch (_) { /* IndexedDB puede estar bloqueado en navegación privada. */ }
     const imageUrl = config.whatsapp?.imageUrl || "assets/images/invitacion-whatsapp.jpg";
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, { cache: "force-cache" });
     if (!response.ok) throw new Error("No fue posible cargar la imagen de la invitación.");
-    const blob = await response.blob();
-    state.shareImageFile = new File([blob], "invitacion-50-anos.jpg", { type: blob.type || "image/jpeg" });
+    applyWhatsappImage(await response.blob(), "invitacion-50-anos.jpg");
     return state.shareImageFile;
   }
 
-  function openWhatsappDialog(item) {
+  async function getShareImageFile() {
+    return loadWhatsappImage();
+  }
+
+  async function openWhatsappDialog(item) {
     state.whatsappInvitation = item;
     document.getElementById("whatsapp-recipient-name").textContent = `${item.primaryName} · clave ${item.code}`;
     document.getElementById("whatsapp-recipient-phone").value = item.phone || "";
@@ -269,6 +383,7 @@
     document.getElementById("whatsapp-dialog-error").textContent = "";
     const shareButton = document.getElementById("share-whatsapp-package");
     shareButton.hidden = !(navigator.share && navigator.canShare);
+    loadWhatsappImage().catch((error) => { document.getElementById("whatsapp-dialog-error").textContent = error.message; });
     if (typeof whatsappDialog.showModal === "function") whatsappDialog.showModal();
     else whatsappDialog.setAttribute("open", "");
   }
@@ -293,7 +408,9 @@
   if (config.apiMode !== "mock") document.querySelectorAll(".demo-only").forEach((element) => { element.hidden = true; });
 
   salutationSelect.addEventListener("change", updateCustomSalutationVisibility);
+  honorificSelect.addEventListener("change", updateCustomHonorificVisibility);
   fillWhatsappSettingsForm();
+  loadWhatsappImage().catch(() => {});
 
   document.getElementById("toggle-whatsapp-settings").addEventListener("click", (event) => {
     const opening = whatsappSettingsForm.hidden;
@@ -322,6 +439,37 @@
     localStorage.removeItem(whatsappStorageKey);
     fillWhatsappSettingsForm(defaultWhatsappSettings());
     document.getElementById("whatsapp-settings-status").textContent = "Se restauró el mensaje original.";
+  });
+
+  document.getElementById("whatsapp-image-picker").addEventListener("change", async (event) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    const status = document.getElementById("whatsapp-settings-status");
+    status.textContent = "Preparando imagen…";
+    try {
+      const prepared = await optimizeWhatsappImage(file);
+      await imageStore("put", prepared);
+      applyWhatsappImage(prepared.blob, prepared.name);
+      status.textContent = "Imagen guardada y optimizada en este dispositivo.";
+      announce("Nueva imagen de WhatsApp seleccionada.");
+    } catch (error) {
+      status.textContent = error.message;
+    } finally {
+      event.currentTarget.value = "";
+    }
+  });
+
+  document.getElementById("reset-whatsapp-image").addEventListener("click", async () => {
+    try { await imageStore("delete"); } catch (_) { /* Puede estar bloqueado en modo privado. */ }
+    if (state.shareImageUrl) URL.revokeObjectURL(state.shareImageUrl);
+    state.shareImageFile = null;
+    state.shareImageUrl = null;
+    const defaultUrl = config.whatsapp?.imageUrl || "assets/images/invitacion-whatsapp.jpg";
+    document.getElementById("whatsapp-preview-image").src = defaultUrl;
+    document.getElementById("whatsapp-settings-image-preview").src = defaultUrl;
+    document.getElementById("download-whatsapp-image").href = defaultUrl;
+    await loadWhatsappImage();
+    document.getElementById("whatsapp-settings-status").textContent = "Se restauró la imagen original.";
   });
 
   loginForm.addEventListener("submit", async (event) => {
@@ -362,8 +510,10 @@
         primaryName: invitationForm.primaryName.value.trim(),
         email: invitationForm.email.value.trim(),
         phone: invitationForm.phone.value.trim(),
+        honorific: selectedHonorific(),
         salutationDetail: selectedSalutation(),
         tableName: invitationForm.tableName.value.trim(),
+        cardType: invitationForm.cardType.value,
         companions
       });
       const code = result.code;
@@ -443,7 +593,7 @@
     try {
       const draft = currentWhatsappDraft();
       await copyText(draft.message);
-      announce("Mensaje de WhatsApp copiado.");
+      announce("Mensaje de WhatsApp copiado con sus emojis.");
     } catch (requestError) {
       error.textContent = requestError.message;
     }
