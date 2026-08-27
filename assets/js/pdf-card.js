@@ -323,8 +323,8 @@
       : (event.message || "La compañía de ustedes hará que esta celebración sea aún más inolvidable."), PAGE_WIDTH / 2, 915, 820, 37, birthdayCard ? 3 : 2);
 
     drawDivider(ctx, 1030);
-    drawDetailBox(ctx, 150, 1070, 445, "Fecha y hora", event.date || "Fecha por confirmar", event.time || "Hora por confirmar");
-    drawDetailBox(ctx, 645, 1070, 445, "Lugar", event.place || "Lugar por confirmar", event.address || "Dirección por confirmar");
+    drawDetailBox(ctx, 150, 1070, 445, "Fecha y hora", event.date || "5 de Septiembre", event.time || "Eucaristia: 5:00pm");
+    drawDetailBox(ctx, 645, 1070, 445, "Lugar", event.place || "Rancho Gran Gil´s", event.address || "Vía Tunja - Samacá, sector Santo Domingo");
 
     const badges = [];
     if (event.dressCode) badges.push(`Código de vestuario: ${event.dressCode}`);
