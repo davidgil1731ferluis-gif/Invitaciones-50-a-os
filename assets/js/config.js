@@ -6,14 +6,14 @@ window.INVITATION_CONFIG = Object.freeze({
   event: {
     title: "Celebrando mis 50 años",
     message: "La compañía de ustedes hará que esta celebración sea aún más inolvidable.",
-    date: "Fecha por confirmar",
-    time: "Hora por confirmar",
-    place: "Lugar por confirmar",
-    address: "Dirección por confirmar",
-    dressCode: "Elegante",
+    date: "5 de septiembre",
+    time: "Eucaristia:5:00 pm",
+    place: "Rancho Gran Gil´s",
+    address: "Vía Tunja - Samacá, sector Santo Domingo",
+    dressCode: "Formal",
 
     // Es opcional. Si se deja vacío se buscará automáticamente la dirección en Google Maps.
-    mapsUrl: ""
+    mapsUrl: "https://www.google.com/maps/place/Eventos+Rancho+Gran+Gil%C2%B4s/@5.5347321,-73.5065568,17z/data=!3m1!4b1!4m6!3m5!1s0x8e41d5cefa34d1ad:0x72a406c862986092!8m2!3d5.5347268!4d-73.5039765!16s%2Fg%2F11sthkl44s!5m1!1e4?authuser=0&entry=ttu&g_ep=EgoyMDI2MDgyNC4wIKXMDSoASAFQAw%3D%3D"
   },
 
   animation: {
